@@ -1,10 +1,10 @@
 import React from 'react';
-import ChannelsPage from '../components/ChannelsPage';
+import Dashboard from '../components/Dashboard';
 
 export default function Home() {
   return (
     <main className="p-8">
-      <ChannelsPage />
+      <Dashboard />
     </main>
   );
 }

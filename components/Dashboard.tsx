@@ -1,38 +1,37 @@
 "use client";
-import React from 'react';
+import React, { useState } from 'react';
+import ChannelsPage from './ChannelsPage';
+import ProductList from './ProductList';
+import PersonaManager from './PersonaManager';
 
 const Dashboard = () => {
+  const [activeTab, setActiveTab] = useState('channels');
   return (
-    <div className="max-w-6xl mx-auto p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div className="col-span-1 md:col-span-2 bg-white shadow-lg rounded-lg p-6">
-        <h2 className="text-2xl font-bold mb-4">Interactive Report</h2>
-        <div className="flex justify-between items-center mb-4">
-          <div className="text-center">
-            <p className="text-lg font-semibold">Users</p>
-            <p className="text-3xl">44,542</p>
-          </div>
-          <div className="text-center">
-            <p className="text-lg font-semibold">Sessions</p>
-            <p className="text-3xl">58,015</p>
-          </div>
-          <div className="text-center">
-            <p className="text-lg font-semibold">Page Views</p>
-            <p className="text-3xl">232,634</p>
-          </div>
-          <div className="text-center">
-            <p className="text-lg font-semibold">Transactions</p>
-            <p className="text-3xl">58</p>
-          </div>
-        </div>
-        <div className="bg-gray-100 h-64">Chart Placeholder</div>
+    <div className="max-w-7xl mx-auto p-8">
+      <div className="flex gap-4 border-b mb-8">
+        <button
+          className={`px-4 py-2 -mb-px font-medium text-sm border-b-2 transition-colors duration-200 ${activeTab === 'channels' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
+          onClick={() => setActiveTab('channels')}
+        >
+          Channels
+        </button>
+        <button
+          className={`px-4 py-2 -mb-px font-medium text-sm border-b-2 transition-colors duration-200 ${activeTab === 'campaigns' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
+          onClick={() => setActiveTab('campaigns')}
+        >
+          Campaigns
+        </button>
+        <button
+          className={`px-4 py-2 -mb-px font-medium text-sm border-b-2 transition-colors duration-200 ${activeTab === 'personas' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
+          onClick={() => setActiveTab('personas')}
+        >
+          Personas
+        </button>
       </div>
-      <div className="bg-white shadow-lg rounded-lg p-6">
-        <h2 className="text-2xl font-bold mb-4">Channel Performance</h2>
-        <div className="bg-gray-100 h-64">Chart Placeholder</div>
-      </div>
-      <div className="bg-white shadow-lg rounded-lg p-6">
-        <h2 className="text-2xl font-bold mb-4">Visitor Overview</h2>
-        <div className="bg-gray-100 h-64">Pie Chart Placeholder</div>
+      <div>
+        {activeTab === 'channels' && <ChannelsPage />}
+        {activeTab === 'campaigns' && <ProductList />}
+        {activeTab === 'personas' && <PersonaManager />}
       </div>
     </div>
   );
