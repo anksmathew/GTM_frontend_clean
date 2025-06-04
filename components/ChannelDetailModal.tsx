@@ -82,7 +82,6 @@ function ensure12(arr: number[] | undefined, fallback: number = 0): number[] {
 const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initialChannel, onClose, onEdit }) => {
   const [activeTab, setActiveTab] = useState('performance');
   const [channel, setChannel] = useState<ChannelWithHistory>(initialChannel);
-  const [showEditModal, setShowEditModal] = useState(false);
   const [showEditGraph, setShowEditGraph] = useState(false);
   const [historicalCTR, setHistoricalCTR] = useState<number[]>(
     ensure12(initialChannel.historicalCTR, (initialChannel.ctr || 0) * 100)
@@ -282,12 +281,6 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
     setChannel(updatedChannel);
     if (onEdit) onEdit(updatedChannel);
     if (onClose) onClose();
-  };
-
-  const handleEditSave = (updatedChannel: Channel) => {
-    setChannel(updatedChannel);
-    setShowEditModal(false);
-    if (onEdit) onEdit(updatedChannel);
   };
 
   const handleEditGraphSave = () => {
@@ -879,7 +872,23 @@ const EditTabForm: React.FC<{
     assigned_campaigns: number[];
     assigned_personas: number[];
   };
-  setForm: React.Dispatch<React.SetStateAction<any>>;
+  setForm: React.Dispatch<React.SetStateAction<{
+    name: string;
+    type: string;
+    budget: number;
+    spend: number;
+    ctr: number;
+    conversion_rate: number;
+    roi: number;
+    status: string;
+    target_ctr: number;
+    target_conversion: number;
+    target_roi: number;
+    api_key: string;
+    tracking_code: string;
+    assigned_campaigns: number[];
+    assigned_personas: number[];
+  }>>;
 }> = ({ form, setForm }) => {
   const [campaigns, setCampaigns] = React.useState<{ id: number; name: string }[]>([]);
   const [personas, setPersonas] = React.useState<{ id: number; name: string }[]>([]);
