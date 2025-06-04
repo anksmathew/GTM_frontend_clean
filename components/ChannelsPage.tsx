@@ -74,22 +74,31 @@ const ChannelsPage = () => {
   };
 
   const handleSaveEdit = async (updatedChannel: ChannelWithHistory) => {
-    alert('Saving channel: ' + JSON.stringify(updatedChannel, null, 2));
-    console.log('Saving channel:', updatedChannel);
-    if (editChannel) {
-      const res = await axios.put(`${API_URL}/api/channels/${editChannel.id}`, updatedChannel);
-      console.log('Backend response:', res.data);
-      const refreshed = await axios.get(`${API_URL}/api/channels/${editChannel.id}`);
-      setChannels(channels.map(c => c.id === editChannel.id ? refreshed.data.channel : c));
-      setEditChannel(refreshed.data.channel);
-      setSelectedChannel(refreshed.data.channel);
+    console.log('handleSaveEdit called, updatedChannel:', updatedChannel);
+    // Ensure required backend fields are present and valid
+    const payload = {
+      name: updatedChannel.name || '',
+      type: updatedChannel.type || '',
+      status: updatedChannel.status || 'Active',
+      budget: updatedChannel.budget ?? 0,
+      spend: updatedChannel.spend ?? 0,
+      roi: updatedChannel.roi ?? 0,
+      ctr: updatedChannel.ctr ?? 0,
+      conversion_rate: updatedChannel.conversion_rate ?? 0,
+      kpis: '',
+      integration_settings: '',
+      historicalCTR: Array.isArray(updatedChannel.historicalCTR) ? updatedChannel.historicalCTR : [],
+      historicalConversionRate: Array.isArray(updatedChannel.historicalConversionRate) ? updatedChannel.historicalConversionRate : [],
+    };
+    if (editChannel && editChannel.id !== undefined) {
+      await axios.put(`${API_URL}/api/channels/${editChannel.id}`, payload);
     } else {
-      await axios.post(`${API_URL}/api/channels`, updatedChannel);
-      const refreshed = await axios.get(`${API_URL}/api/channels`);
-      setChannels(refreshed.data.channels);
+      await axios.post(`${API_URL}/api/channels`, payload);
     }
     setShowEditModal(false);
     setEditChannel(undefined);
+    const refreshed = await axios.get(`${API_URL}/api/channels`);
+    setChannels(refreshed.data.channels);
   };
 
   return (

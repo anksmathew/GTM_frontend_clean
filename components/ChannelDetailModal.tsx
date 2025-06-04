@@ -82,7 +82,7 @@ function ensure12(arr: number[] | undefined, fallback: number = 0): number[] {
 }
 
 const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initialChannel, onClose, onEdit }) => {
-  const [activeTab, setActiveTab] = useState('performance');
+  const [activeTab, setActiveTab] = useState('edit');
   const [channel, setChannel] = useState<ChannelWithHistory>(initialChannel);
   const [showEditGraph, setShowEditGraph] = useState(false);
   const [historicalCTR, setHistoricalCTR] = useState<number[]>(
@@ -166,12 +166,12 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
   };
 
   const tabs = [
+    { id: 'edit', label: 'Edit' },
     { id: 'performance', label: 'Performance' },
     { id: 'budget', label: 'Budget' },
     { id: 'campaigns', label: 'Campaigns' },
     { id: 'personas', label: 'Personas' },
     { id: 'recommendations', label: 'Recommendations' },
-    { id: 'edit', label: 'Edit' },
   ];
 
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -257,7 +257,6 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
   const handleSaveAll = (overrideCTR?: number[], overrideCR?: number[]) => {
     const ctrArr = overrideCTR ? [...overrideCTR] : [...historicalCTR];
     const crArr = overrideCR ? [...overrideCR] : [...historicalConversionRate];
-    alert('handleSaveAll arrays: ctrArr=' + JSON.stringify(ctrArr) + ', crArr=' + JSON.stringify(crArr));
     const updatedChannel: ChannelWithHistory = {
       id: channel.id,
       name: form.name,
@@ -278,7 +277,7 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
       historicalCTR: ctrArr ?? [],
       historicalConversionRate: crArr ?? [],
     };
-    alert('handleSaveAll: ' + JSON.stringify(updatedChannel, null, 2)); // Debug
+    console.log('handleSaveAll called, updatedChannel:', updatedChannel);
     setChannel(updatedChannel);
     if (onEdit) onEdit(updatedChannel);
     if (onClose) onClose();
