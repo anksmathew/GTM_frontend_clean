@@ -287,8 +287,13 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
     setHistoricalCTR([...editCTR]);
     setHistoricalConversionRate([...editConversionRate]);
     setShowEditGraph(false);
-    // Use a timeout to ensure state is updated before saving
-    setTimeout(() => handleSaveAll(editCTR, editConversionRate), 0);
+    // Persist graph changes to backend
+    const updatedChannel: ChannelWithHistory = {
+      ...channel,
+      historicalCTR: [...editCTR],
+      historicalConversionRate: [...editConversionRate],
+    };
+    if (onEdit) onEdit(updatedChannel);
   };
 
   const handleRoiSave = () => {
@@ -449,7 +454,7 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
                       ×
                     </button>
                     <h3 className="text-lg font-bold mb-4">Edit CTR & Conversion Rate for Each Month</h3>
-                    <form onSubmit={e => { e.preventDefault(); handleEditGraphSave(); handleSaveAll(); }}>
+                    <form onSubmit={e => { e.preventDefault(); handleEditGraphSave(); }}>
                       <div className="grid grid-cols-3 gap-4 mb-4">
                         {months.map((month, idx) => (
                           <div key={month}>
@@ -508,14 +513,6 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
                   </div>
                 </div>
               )}
-              <div className="flex justify-end mt-4">
-                <button
-                  className="bg-blue-600 text-white px-4 py-2 rounded font-semibold hover:bg-blue-700"
-                  onClick={() => handleSaveAll()}
-                >
-                  Save Changes
-                </button>
-              </div>
             </div>
           )}
 
@@ -890,18 +887,24 @@ const EditTabForm: React.FC<{
     assigned_personas: number[];
   }>>;
 }> = ({ form, setForm }) => {
+  const [nameError, setNameError] = React.useState('');
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     setForm((prev: typeof form) => ({
       ...prev,
       [name]: type === 'number' ? Number(value) : value,
     }));
+    if (name === 'name' && value.trim() === '') {
+      setNameError('Channel Name is required');
+    } else if (name === 'name') {
+      setNameError('');
+    }
   };
   return (
     <form className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium mb-1">Channel Name</label>
+          <label className="block text-sm font-medium mb-1">Channel Name <span className="text-red-500">*</span></label>
           <input
             type="text"
             name="name"
@@ -910,6 +913,7 @@ const EditTabForm: React.FC<{
             className="w-full border rounded px-3 py-2"
             required
           />
+          {nameError && <div className="text-red-500 text-xs mt-1">{nameError}</div>}
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">Channel Type</label>

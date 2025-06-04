@@ -90,8 +90,8 @@ const ChannelsPage = () => {
       historicalCTR: Array.isArray(updatedChannel.historicalCTR) ? updatedChannel.historicalCTR : [],
       historicalConversionRate: Array.isArray(updatedChannel.historicalConversionRate) ? updatedChannel.historicalConversionRate : [],
     };
-    if (editChannel && editChannel.id !== undefined) {
-      await axios.put(`${API_URL}/api/channels/${editChannel.id}`, payload);
+    if (updatedChannel.id !== undefined) {
+      await axios.put(`${API_URL}/api/channels/${updatedChannel.id}`, payload);
     } else {
       await axios.post(`${API_URL}/api/channels`, payload);
     }
