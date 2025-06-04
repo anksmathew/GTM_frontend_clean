@@ -564,6 +564,9 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
                       }
                     }
                   }} />
+                  <div className="mt-4 text-center font-semibold text-gray-700">
+                    Budget Remaining: ${channel.budget - monthlySpend.reduce((sum, v) => sum + v, 0)}
+                  </div>
                   {showEditSpend && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
                       <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-lg relative">
