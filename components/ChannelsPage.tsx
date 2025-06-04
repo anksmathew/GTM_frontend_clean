@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import ChannelDetailModal, { ChannelWithHistory } from './ChannelDetailModal';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
 const statusColors: Record<string, string> = {
   'Active': 'bg-green-100 text-green-700',
   'Paused': 'bg-yellow-100 text-yellow-700',
@@ -33,7 +35,7 @@ const ChannelsPage = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    axios.get<{ channels: ChannelWithHistory[] }>('http://localhost:3001/api/channels')
+    axios.get<{ channels: ChannelWithHistory[] }>(`${API_URL}/api/channels`)
       .then(res => {
         setChannels(res.data.channels);
       })
@@ -48,12 +50,12 @@ const ChannelsPage = () => {
 
   const handlePause = async (channel: ChannelWithHistory) => {
     const newStatus = channel.status === 'Active' ? 'Paused' : 'Active';
-    await axios.put(`http://localhost:3001/api/channels/${channel.id}`, { ...channel, status: newStatus });
+    await axios.put(`${API_URL}/api/channels/${channel.id}`, { ...channel, status: newStatus });
     setChannels(channels.map(c => c.id === channel.id ? { ...c, status: newStatus } : c));
   };
 
   const handleDelete = async (id: number) => {
-    await axios.delete(`http://localhost:3001/api/channels/${id}`);
+    await axios.delete(`${API_URL}/api/channels/${id}`);
     setChannels(channels.filter(c => c.id !== id));
     setDeleteChannelId(null);
     setDeleteChannelName('');
@@ -75,14 +77,14 @@ const ChannelsPage = () => {
     alert('Saving channel: ' + JSON.stringify(updatedChannel, null, 2));
     console.log('Saving channel:', updatedChannel);
     if (editChannel) {
-      const res = await axios.put(`http://localhost:3001/api/channels/${editChannel.id}`, updatedChannel);
+      const res = await axios.put(`${API_URL}/api/channels/${editChannel.id}`, updatedChannel);
       console.log('Backend response:', res.data);
-      const refreshed = await axios.get(`http://localhost:3001/api/channels/${editChannel.id}`);
+      const refreshed = await axios.get(`${API_URL}/api/channels/${editChannel.id}`);
       setChannels(channels.map(c => c.id === editChannel.id ? refreshed.data.channel : c));
       setEditChannel(refreshed.data.channel);
       setSelectedChannel(refreshed.data.channel);
     } else {
-      const response = await axios.post('http://localhost:3001/api/channels', updatedChannel);
+      const response = await axios.post(`${API_URL}/api/channels`, updatedChannel);
       setChannels([...channels, response.data]);
     }
     setShowEditModal(false);

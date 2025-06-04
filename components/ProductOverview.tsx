@@ -10,6 +10,8 @@ interface Product {
   launch_date: string;
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
 const ProductOverview = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [newProduct, setNewProduct] = useState<Partial<Product>>({ name: '', description: '', launch_date: '' });
@@ -20,7 +22,7 @@ const ProductOverview = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('http://localhost:3001/api/products');
+      const response = await axios.get(`${API_URL}/api/products`);
       setProducts(response.data.products);
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -34,7 +36,7 @@ const ProductOverview = () => {
 
   const addProduct = async () => {
     try {
-      await axios.post('http://localhost:3001/api/products', newProduct);
+      await axios.post(`${API_URL}/api/products`, newProduct);
       fetchProducts();
       setNewProduct({ name: '', description: '', launch_date: '' });
     } catch (error) {

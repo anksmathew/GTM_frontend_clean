@@ -36,6 +36,8 @@ const statusColors: Record<string, string> = {
   'Delayed': 'bg-red-100 text-red-700',
 };
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
 const ProductList = forwardRef((props, ref) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [newProduct, setNewProduct] = useState({
@@ -69,7 +71,7 @@ const ProductList = forwardRef((props, ref) => {
 
   useEffect(() => {
     fetchProducts();
-    axios.get('http://localhost:3001/api/channels').then(res => setChannels(res.data.channels || []));
+    axios.get(`${API_URL}/api/channels`).then(res => setChannels(res.data.channels || []));
   }, []);
 
   useEffect(() => {
@@ -88,11 +90,11 @@ const ProductList = forwardRef((props, ref) => {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get<{ campaigns: Product[] }>('http://localhost:3001/api/campaigns');
+      const response = await axios.get<{ campaigns: Product[] }>(`${API_URL}/api/campaigns`);
       const campaigns = response.data.campaigns;
       // Fetch channels for each campaign
       const campaignsWithChannels = await Promise.all(campaigns.map(async (c: Product) => {
-        const res = await axios.get<{ channels: Channel[] }>(`http://localhost:3001/api/campaigns/${c.id}/channels`);
+        const res = await axios.get<{ channels: Channel[] }>(`${API_URL}/api/campaigns/${c.id}/channels`);
         return { ...c, channelNames: res.data.channels.map((ch: Channel) => ch.name) };
       }));
       setProducts(campaignsWithChannels);
@@ -123,10 +125,10 @@ const ProductList = forwardRef((props, ref) => {
       return;
     }
     try {
-      const response = await axios.post('http://localhost:3001/api/campaigns', newProduct);
+      const response = await axios.post(`${API_URL}/api/campaigns`, newProduct);
       const newId = response.data.id;
       // Save assigned channels
-      await axios.post(`http://localhost:3001/api/campaigns/${newId}/channels`, { channelIds: selectedChannels });
+      await axios.post(`${API_URL}/api/campaigns/${newId}/channels`, { channelIds: selectedChannels });
       await fetchProducts();
       setNewProduct({ name: '', description: '', launch_date: '', status: statusOptions[0], budget: 0, team: '' });
       setSelectedChannels([]);
@@ -152,7 +154,7 @@ const ProductList = forwardRef((props, ref) => {
         team: product.team || ''
       });
       // Fetch assigned channels
-      const res = await axios.get<{ channels: Channel[] }>(`http://localhost:3001/api/campaigns/${id}/channels`);
+      const res = await axios.get<{ channels: Channel[] }>(`${API_URL}/api/campaigns/${id}/channels`);
       setEditSelectedChannels(res.data.channels.map((c: Channel) => c.id));
       setError('');
     }
@@ -171,9 +173,9 @@ const ProductList = forwardRef((props, ref) => {
     }
     try {
       const { name, description, launch_date, status, budget, team } = editProduct;
-      await axios.put(`http://localhost:3001/api/campaigns/${id}`, { name, description, launch_date, status, budget, team });
+      await axios.put(`${API_URL}/api/campaigns/${id}`, { name, description, launch_date, status, budget, team });
       // Save assigned channels
-      await axios.post(`http://localhost:3001/api/campaigns/${id}/channels`, { channelIds: editSelectedChannels });
+      await axios.post(`${API_URL}/api/campaigns/${id}/channels`, { channelIds: editSelectedChannels });
       await fetchProducts();
       setEditId(null);
     } catch (error) {
@@ -188,7 +190,7 @@ const ProductList = forwardRef((props, ref) => {
 
   const handleDeleteProduct = async (id: number) => {
     try {
-      await axios.delete(`http://localhost:3001/api/campaigns/${id}`);
+      await axios.delete(`${API_URL}/api/campaigns/${id}`);
       await fetchProducts();
     } catch (error) {
       console.error('Error deleting campaign:', error);

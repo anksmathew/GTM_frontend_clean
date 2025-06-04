@@ -40,7 +40,8 @@ const incomeBrackets = ["< $25k", "$25k-$50k", "$50k-$100k", "$100k-$200k", "$20
 const companySizes = ["1-10", "11-50", "51-200", "201-1000", "1000+"];
 const channels = ["Email", "Phone", "Social Media", "In-person", "SMS", "App"];
 
-const API_URL = 'http://localhost:3001/api/personas';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const personasApi = `${API_URL}/api/personas`;
 
 // Helper to get avatar emoji by gender
 const getAvatarEmoji = (gender?: string) => {
@@ -93,18 +94,18 @@ const PersonaManager = () => {
   }, [personas]);
 
   const fetchPersonas = async () => {
-    const res = await axios.get(API_URL);
+    const res = await axios.get(personasApi);
     setPersonas(res.data.personas);
   };
 
   const fetchCampaigns = async () => {
-    const res = await axios.get<{ campaigns: Campaign[] }>('http://localhost:3001/api/campaigns');
+    const res = await axios.get<{ campaigns: Campaign[] }>(`${API_URL}/api/campaigns`);
     setCampaigns(res.data.campaigns || []);
     // Fetch assignments for each campaign
     const assignments: { [campaignId: number]: number[] } = {};
     const assignedPersonaIds = new Set<number>();
     for (const c of res.data.campaigns || []) {
-      const r = await axios.get<{ personas: Persona[] }>(`http://localhost:3001/api/campaigns/${c.id}/personas`);
+      const r = await axios.get<{ personas: Persona[] }>(`${API_URL}/api/campaigns/${c.id}/personas`);
       assignments[c.id] = r.data.personas.map((p: Persona) => p.id);
       r.data.personas.forEach((p: Persona) => assignedPersonaIds.add(p.id));
     }
@@ -159,16 +160,16 @@ const PersonaManager = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editPersona) {
-      await axios.put(`${API_URL}/${editPersona.id}`, form);
+      await axios.put(`${API_URL}/api/personas/${editPersona.id}`, form);
     } else {
-      await axios.post(API_URL, form);
+      await axios.post(API_URL + "/api/personas", form);
     }
     fetchPersonas();
     closeModal();
   };
 
   const handleDelete = async (id: number) => {
-    await axios.delete(`${API_URL}/${id}`);
+    await axios.delete(`${API_URL}/api/personas/${id}`);
     fetchPersonas();
   };
 
@@ -187,11 +188,11 @@ const PersonaManager = () => {
     const personaId = parseInt(draggableId);
     // Unassign
     if (source.droppableId !== 'unassigned') {
-      await axios.delete(`http://localhost:3001/api/campaigns/${source.droppableId}/personas/${personaId}`);
+      await axios.delete(`${API_URL}/api/campaigns/${source.droppableId}/personas/${personaId}`);
     }
     // Assign
     if (destination.droppableId !== 'unassigned') {
-      await axios.post(`http://localhost:3001/api/campaigns/${destination.droppableId}/personas/${personaId}`);
+      await axios.post(`${API_URL}/api/campaigns/${destination.droppableId}/personas/${personaId}`);
     }
     fetchCampaigns();
   };

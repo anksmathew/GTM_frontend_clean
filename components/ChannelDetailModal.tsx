@@ -28,6 +28,8 @@ ChartJS.register(
   Legend
 );
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
 export interface Channel {
   id?: number;
   name: string;
@@ -202,13 +204,12 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
 
   useEffect(() => {
     if (activeTab === 'campaigns') {
-      // Fetch all campaigns, then filter to only those assigned to this channel
-      axios.get('http://localhost:3001/api/campaigns').then(async res => {
+      axios.get(`${API_URL}/api/campaigns`).then(async res => {
         const all: Campaign[] = res.data.campaigns || [];
         setAllCampaigns(all);
         const filtered: Campaign[] = [];
         for (const c of all) {
-          const chRes = await axios.get<{ channels: Channel[] }>(`http://localhost:3001/api/campaigns/${c.id}/channels`);
+          const chRes = await axios.get<{ channels: Channel[] }>(`${API_URL}/api/campaigns/${c.id}/channels`);
           if (chRes.data.channels.some((ch: Channel) => ch.id === channel.id)) {
             filtered.push(c);
           }
@@ -217,7 +218,7 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
       });
     }
     if (activeTab === 'personas') {
-      axios.get('http://localhost:3001/api/personas').then(res => setPersonas(res.data.personas || []));
+      axios.get(`${API_URL}/api/personas`).then(res => setPersonas(res.data.personas || []));
     }
   }, [activeTab, channel.id]);
 
@@ -322,16 +323,16 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
     if (addMode === 'create') {
       if (!newCampaign.name.trim()) return;
       // Create new campaign
-      const res = await axios.post('http://localhost:3001/api/campaigns', { name: newCampaign.name, status: newCampaign.status });
+      const res = await axios.post(`${API_URL}/api/campaigns`, { name: newCampaign.name, status: newCampaign.status });
       const newId = res.data.id;
       // Assign to this channel
-      await axios.post(`http://localhost:3001/api/campaigns/${newId}/channels`, { channelIds: [channel.id] });
+      await axios.post(`${API_URL}/api/campaigns/${newId}/channels`, { channelIds: [channel.id] });
     } else {
       // Assign existing campaign
       if (!newCampaign.id) return;
-      await axios.post(`http://localhost:3001/api/campaigns/${newCampaign.id}/channels`, { channelIds: [channel.id] });
+      await axios.post(`${API_URL}/api/campaigns/${newCampaign.id}/channels`, { channelIds: [channel.id] });
     }
-    await axios.get('http://localhost:3001/api/campaigns').then(res => setCampaigns(res.data.campaigns || []));
+    await axios.get(`${API_URL}/api/campaigns`).then(res => setCampaigns(res.data.campaigns || []));
     setNewCampaign({ name: '', status: 'Planned' });
     setShowAddCampaignModal(false);
     setAddingCampaign(false);
