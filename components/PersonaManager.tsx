@@ -81,6 +81,7 @@ const PersonaManager = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [assigned, setAssigned] = useState<{ [campaignId: number]: number[] }>({});
   const [unassigned, setUnassigned] = useState<number[]>([]);
+  const [personaCampaigns, setPersonaCampaigns] = useState<{ [personaId: number]: Campaign[] }>({});
 
   useEffect(() => {
     fetchPersonas();
@@ -89,6 +90,10 @@ const PersonaManager = () => {
   useEffect(() => {
     if (personas.length > 0) {
       fetchCampaigns();
+      // Fetch campaigns for each persona
+      personas.forEach(persona => {
+        fetchPersonaCampaigns(persona.id);
+      });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [personas]);
@@ -113,6 +118,18 @@ const PersonaManager = () => {
     // Unassigned personas
     const allPersonaIds = personas.map(p => p.id);
     setUnassigned(allPersonaIds.filter(id => !assignedPersonaIds.has(id)));
+  };
+
+  const fetchPersonaCampaigns = async (personaId: number) => {
+    try {
+      const res = await axios.get<{ campaigns: Campaign[] }>(`${API_URL}/api/personas/${personaId}/campaigns`);
+      setPersonaCampaigns(prev => ({
+        ...prev,
+        [personaId]: res.data.campaigns
+      }));
+    } catch (error) {
+      console.error(`Error fetching campaigns for persona ${personaId}:`, error);
+    }
   };
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -246,6 +263,31 @@ const PersonaManager = () => {
                     {interest}
                   </span>
                 ))}
+              </div>
+            </div>
+
+            {/* Campaigns Section */}
+            <div className="mt-4">
+              <h4 className="text-sm font-medium text-[var(--color-neutral-700)] mb-2">Targeted Campaigns</h4>
+              <div className="space-y-2">
+                {personaCampaigns[persona.id]?.length > 0 ? (
+                  personaCampaigns[persona.id].map((campaign) => (
+                    <div
+                      key={campaign.id}
+                      className="flex items-center justify-between p-2 bg-[var(--color-neutral-50)] rounded-lg hover:bg-[var(--color-neutral-100)] transition-colors duration-150"
+                    >
+                      <span className="text-sm text-[var(--color-neutral-900)]">{campaign.name}</span>
+                      <button
+                        onClick={() => {/* Navigate to campaign */}}
+                        className="text-xs text-[var(--color-primary-600)] hover:text-[var(--color-primary-700)] font-medium"
+                      >
+                        View →
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-[var(--color-neutral-500)] italic">No campaigns targeting this persona</p>
+                )}
               </div>
             </div>
 
