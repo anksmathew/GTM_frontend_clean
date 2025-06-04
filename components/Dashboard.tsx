@@ -6,29 +6,36 @@ import PersonaManager from './PersonaManager';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('channels');
+  
+  const tabs = [
+    { id: 'channels', label: 'Channels', icon: '📊' },
+    { id: 'campaigns', label: 'Campaigns', icon: '🎯' },
+    { id: 'personas', label: 'Personas', icon: '👥' },
+  ];
+
   return (
-    <div className="max-w-7xl mx-auto p-8">
-      <div className="flex gap-4 border-b mb-8">
-        <button
-          className={`px-4 py-2 -mb-px font-medium text-sm border-b-2 transition-colors duration-200 ${activeTab === 'channels' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
-          onClick={() => setActiveTab('channels')}
-        >
-          Channels
-        </button>
-        <button
-          className={`px-4 py-2 -mb-px font-medium text-sm border-b-2 transition-colors duration-200 ${activeTab === 'campaigns' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
-          onClick={() => setActiveTab('campaigns')}
-        >
-          Campaigns
-        </button>
-        <button
-          className={`px-4 py-2 -mb-px font-medium text-sm border-b-2 transition-colors duration-200 ${activeTab === 'personas' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
-          onClick={() => setActiveTab('personas')}
-        >
-          Personas
-        </button>
-      </div>
-      <div>
+    <div className="space-y-8">
+      <nav className="flex space-x-1 bg-white rounded-xl p-1 shadow-sm">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`
+              flex items-center px-4 py-2.5 text-sm font-medium rounded-lg
+              transition-all duration-200 ease-in-out
+              ${activeTab === tab.id 
+                ? 'bg-gray-900 text-white shadow-sm' 
+                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+              }
+            `}
+          >
+            <span className="mr-2">{tab.icon}</span>
+            {tab.label}
+          </button>
+        ))}
+      </nav>
+
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         {activeTab === 'channels' && <ChannelsPage />}
         {activeTab === 'campaigns' && <ProductList />}
         {activeTab === 'personas' && <PersonaManager />}

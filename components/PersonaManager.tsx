@@ -198,154 +198,75 @@ const PersonaManager = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-8 bg-white rounded-xl mt-10 shadow border border-gray-200">
-      <h1 className="text-3xl font-bold mb-8 text-gray-900">Personas</h1>
-      <div className="flex flex-col md:flex-row md:items-end gap-4 mb-8">
-        <input
-          type="text"
-          placeholder="Search personas..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400"
-        />
-        <select
-          value={filterGender}
-          onChange={(e) => setFilterGender(e.target.value)}
-          className="border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400"
-        >
-          <option value="">All Genders</option>
-          {genders.map((g) => (
-            <option key={g} value={g}>{g}</option>
-          ))}
-        </select>
-        <select
-          value={filterAge}
-          onChange={(e) => setFilterAge(e.target.value)}
-          className="border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400"
-        >
-          <option value="">All Ages</option>
-          {ageRanges.map((a) => (
-            <option key={a} value={a}>{a}</option>
-          ))}
-        </select>
-        <button
-          onClick={() => openModal()}
-          className="ml-auto bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition"
-        >
-          + New Persona
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-semibold text-[var(--color-neutral-900)]">Target Personas</h2>
+        <button className="btn btn-primary" onClick={() => openModal()}>
+          Add Persona
         </button>
       </div>
-      {/* Persona Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {filteredPersonas.map((persona) => {
-          const avatarEmoji = getAvatarEmoji(persona.gender);
-          return (
-            <div key={persona.id} className="bg-white rounded-xl shadow p-6 flex flex-col items-center relative group hover:shadow-lg transition min-w-[220px]">
-              <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center text-5xl mb-2 border">
-                {avatarEmoji}
-              </div>
-              <div className="font-bold text-lg text-center mb-1">{persona.name}</div>
-              <div className="text-sm text-gray-500 text-center mb-2">{persona.title}</div>
-              <div className="flex flex-wrap gap-1 justify-center mb-3">
-                {persona.age_range && <span className="bg-gray-100 rounded px-2 py-1 text-xs">{persona.age_range}</span>}
-                {persona.gender && <span className="bg-gray-100 rounded px-2 py-1 text-xs">{persona.gender}</span>}
-                {persona.location && <span className="bg-gray-100 rounded px-2 py-1 text-xs">{persona.location}</span>}
-              </div>
-              <div className="flex gap-2 mt-2 justify-center w-full">
-                <button
-                  onClick={() => openModal(persona)}
-                  className="bg-yellow-400 text-white px-3 py-1 rounded shadow hover:bg-yellow-500 text-xs"
-                >Edit</button>
-                <button
-                  onClick={() => handleDelete(persona.id)}
-                  className="bg-red-500 text-white px-3 py-1 rounded shadow hover:bg-red-600 text-xs"
-                >Delete</button>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredPersonas.map((persona) => (
+          <div
+            key={persona.id}
+            className="card card-hover p-6"
+          >
+            <div className="flex items-start space-x-4 mb-4">
+              <div className="text-3xl">{getAvatarEmoji(persona.gender)}</div>
+              <div>
+                <h3 className="font-medium text-[var(--color-neutral-900)]">{persona.name}</h3>
+                <p className="text-sm text-[var(--color-neutral-500)]">{persona.title}</p>
               </div>
             </div>
-          );
-        })}
-      </div>
-      <div className="mt-12">
-        <h2 className="text-2xl font-bold mb-6 text-gray-900">Campaigns</h2>
-        <DragDropContext onDragEnd={onDragEnd}>
-          <div className="flex gap-6 overflow-x-auto pb-4">
-            <Droppable droppableId="unassigned">
-              {(provided: DroppableProvided) => (
-                <div ref={provided.innerRef} {...provided.droppableProps} className="flex flex-col bg-gray-100 rounded-xl shadow min-w-[260px] max-w-[320px] px-3 py-4">
-                  <div className="font-bold text-base mb-4 text-center">Unassigned</div>
-                  <div className="flex-1 flex flex-col gap-3">
-                    {unassigned.map((pid, idx) => {
-                      const persona = personas.find(p => p.id === pid);
-                      if (!persona) return null;
-                      const avatarEmoji = getAvatarEmoji(persona.gender);
-                      return (
-                        <Draggable key={persona.id} draggableId={String(persona.id)} index={idx}>
-                          {(provided: DraggableProvided) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              className="bg-white border rounded-lg shadow flex items-center gap-3 px-3 py-2 mb-1 hover:shadow-md transition"
-                            >
-                              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-2xl">
-                                {avatarEmoji}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="font-medium text-sm truncate">{persona.name}</div>
-                                <div className="text-xs text-gray-400 truncate">{persona.title}</div>
-                              </div>
-                            </div>
-                          )}
-                        </Draggable>
-                      );
-                    })}
-                    {provided.placeholder}
-                  </div>
-                  <button className="mt-4 text-blue-600 text-xs font-semibold hover:underline" onClick={() => openModal()}>+ Add a persona</button>
-                </div>
-              )}
-            </Droppable>
-            {campaigns.map((campaign) => (
-              <Droppable droppableId={String(campaign.id)} key={campaign.id}>
-                {(provided: DroppableProvided) => (
-                  <div ref={provided.innerRef} {...provided.droppableProps} className="flex flex-col bg-gray-100 rounded-xl shadow min-w-[260px] max-w-[320px] px-3 py-4">
-                    <div className="font-bold text-base mb-4 text-center">{campaign.name}</div>
-                    <div className="flex-1 flex flex-col gap-3">
-                      {(assigned[campaign.id] || []).map((pid, idx) => {
-                        const persona = personas.find(p => p.id === pid);
-                        if (!persona) return null;
-                        const avatarEmoji = getAvatarEmoji(persona.gender);
-                        return (
-                          <Draggable key={persona.id} draggableId={String(persona.id)} index={idx}>
-                            {(provided: DraggableProvided) => (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                                className="bg-white border rounded-lg shadow flex items-center gap-3 px-3 py-2 mb-1 hover:shadow-md transition"
-                              >
-                                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-2xl">
-                                  {avatarEmoji}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="font-medium text-sm truncate">{persona.name}</div>
-                                  <div className="text-xs text-gray-400 truncate">{persona.title}</div>
-                                </div>
-                              </div>
-                            )}
-                          </Draggable>
-                        );
-                      })}
-                      {provided.placeholder}
-                    </div>
-                    <button className="mt-4 text-blue-600 text-xs font-semibold hover:underline" onClick={() => openModal()}>+ Add a persona</button>
-                  </div>
-                )}
-              </Droppable>
-            ))}
+
+            <div className="space-y-3">
+              <div className="flex items-center text-sm">
+                <span className="w-24 text-[var(--color-neutral-500)]">Age Range:</span>
+                <span className="text-[var(--color-neutral-900)]">{persona.age_range}</span>
+              </div>
+              <div className="flex items-center text-sm">
+                <span className="w-24 text-[var(--color-neutral-500)]">Gender:</span>
+                <span className="text-[var(--color-neutral-900)]">{persona.gender}</span>
+              </div>
+              <div className="flex items-center text-sm">
+                <span className="w-24 text-[var(--color-neutral-500)]">Location:</span>
+                <span className="text-[var(--color-neutral-900)]">{persona.location}</span>
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <h4 className="text-sm font-medium text-[var(--color-neutral-700)] mb-2">Interests</h4>
+              <div className="flex flex-wrap gap-2">
+                {persona.interests.split(',').map((interest, index) => (
+                  <span
+                    key={index}
+                    className="px-2 py-1 bg-[var(--color-primary-50)] text-[var(--color-primary-700)] rounded-full text-xs"
+                  >
+                    {interest}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-2 mt-6">
+              <button
+                className="btn btn-secondary"
+                onClick={() => openModal(persona)}
+              >
+                Edit
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={() => {/* Handle view details */}}
+              >
+                View Details
+              </button>
+            </div>
           </div>
-        </DragDropContext>
+        ))}
       </div>
+
       {/* Modal for Persona Builder Wizard */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">

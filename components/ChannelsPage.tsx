@@ -102,9 +102,9 @@ const ChannelsPage = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Channels</h1>
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-semibold text-[var(--color-neutral-900)]">Marketing Channels</h2>
         <button
           onClick={() => {
             setEditChannel({
@@ -130,70 +130,70 @@ const ChannelsPage = () => {
             });
             setShowEditModal(true);
           }}
-          className="bg-blue-600 text-white px-4 py-2 rounded font-semibold hover:bg-blue-700"
+          className="btn btn-primary"
         >
-          + New Channel
+          Add Channel
         </button>
       </div>
-      {error && <div className="mb-4 text-red-500">{error}</div>}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {channels.map(channel => {
-          const percent = channel.budget ? Math.min(100, Math.round((channel.spend / channel.budget) * 100)) : 0;
-          return (
-            <div 
-              key={channel.id} 
-              className="bg-white rounded-xl shadow p-6 flex flex-col gap-4 border hover:shadow-lg transition relative cursor-pointer"
-              onClick={() => handleViewDetails(channel)}
-            >
-              <div className="flex items-center gap-3">
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {channels.map((channel) => (
+          <div
+            key={channel.id}
+            className="card card-hover p-6 cursor-pointer"
+          >
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center space-x-3">
                 <span className="text-2xl">{typeIcons[channel.type] || '📊'}</span>
-                <div className="flex-1">
-                  <div className="font-bold text-lg">{channel.name}</div>
-                  <div className="text-xs text-gray-500">{channel.type}</div>
-                </div>
-                <span className={`px-2 py-1 rounded text-xs font-semibold ${statusColors[channel.status] || 'bg-gray-100 text-gray-700'}`}>{channel.status}</span>
-                <div className="relative ml-2" onClick={(e) => e.stopPropagation()}>
-                  <button
-                    className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 focus:outline-none"
-                    onClick={() => setOpenMenuId(openMenuId === channel.id ? null : channel.id ?? null)}
-                    aria-label="Actions"
-                  >
-                    <span className="text-xl">&#8942;</span>
-                  </button>
-                  {openMenuId === channel.id && (
-                    <div className="absolute right-0 mt-2 w-36 bg-white border rounded shadow-lg z-10 flex flex-col text-sm">
-                      <button className="px-4 py-2 text-left hover:bg-gray-100" onClick={() => handleViewDetails(channel)}>View Details</button>
-                      <button className="px-4 py-2 text-left hover:bg-gray-100" onClick={() => handleEdit(channel)}>Edit</button>
-                      <button className="px-4 py-2 text-left hover:bg-gray-100" onClick={() => { handlePause(channel); setOpenMenuId(null); }}>{channel.status === 'Active' ? 'Pause' : 'Resume'}</button>
-                      <button className="px-4 py-2 text-left text-red-600 hover:bg-gray-100" onClick={() => { setDeleteChannelId(channel.id ?? null); setDeleteChannelName(channel.name); setOpenMenuId(null); }}>Delete</button>
-                      <button className="px-4 py-2 text-left hover:bg-gray-100">Duplicate</button>
-                    </div>
-                  )}
+                <div>
+                  <h3 className="font-medium text-[var(--color-neutral-900)]">{channel.name}</h3>
+                  <p className="text-sm text-[var(--color-neutral-500)]">{channel.type}</p>
                 </div>
               </div>
+              <span className={`status-badge status-badge-${channel.status}`}>
+                {channel.status.charAt(0).toUpperCase() + channel.status.slice(1)}
+              </span>
+            </div>
+            
+            <div className="space-y-4">
               <div>
-                <div className="flex justify-between text-xs mb-1">
-                  <span>Budget</span>
-                  <span>${channel.spend} / ${channel.budget}</span>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-[var(--color-neutral-600)]">Budget Spent</span>
+                  <span className="font-medium text-[var(--color-neutral-900)]">
+                    ${channel.spend.toLocaleString()} / ${channel.budget.toLocaleString()}
+                  </span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${percent}%` }}></div>
+                <div className="h-2 bg-[var(--color-neutral-100)] rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-[var(--color-primary-500)] rounded-full transition-all duration-300"
+                    style={{ width: `${(channel.spend / channel.budget) * 100}%` }}
+                  />
                 </div>
               </div>
-              <div className="flex justify-between text-xs mt-2">
-                <div>
-                  <span className="font-semibold">CTR:</span> {(channel.ctr * 100).toFixed(1)}%
-                </div>
-                <div>
-                  <span className="font-semibold">Conv:</span> {(channel.conversion_rate * 100).toFixed(1)}%
-                </div>
-                <div>
-                  <span className="font-semibold">ROI:</span> {channel.roi}
-                </div>
+              
+              <div className="flex justify-end space-x-2">
+                <button
+                  className="btn btn-secondary"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEdit(channel);
+                  }}
+                >
+                  Edit
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleViewDetails(channel);
+                  }}
+                >
+                  View Details
+                </button>
               </div>
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
 
       {showEditModal && editChannel && (
