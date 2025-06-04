@@ -890,12 +890,6 @@ const EditTabForm: React.FC<{
     assigned_personas: number[];
   }>>;
 }> = ({ form, setForm }) => {
-  const [campaigns, setCampaigns] = React.useState<{ id: number; name: string }[]>([]);
-  const [personas, setPersonas] = React.useState<{ id: number; name: string }[]>([]);
-  React.useEffect(() => {
-    axios.get('http://localhost:3001/api/campaigns').then(res => setCampaigns(res.data.campaigns || []));
-    axios.get('http://localhost:3001/api/personas').then(res => setPersonas(res.data.personas || []));
-  }, []);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     setForm((prev: typeof form) => ({
