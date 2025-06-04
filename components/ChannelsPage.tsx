@@ -84,8 +84,9 @@ const ChannelsPage = () => {
       setEditChannel(refreshed.data.channel);
       setSelectedChannel(refreshed.data.channel);
     } else {
-      const response = await axios.post(`${API_URL}/api/channels`, updatedChannel);
-      setChannels([...channels, response.data]);
+      await axios.post(`${API_URL}/api/channels`, updatedChannel);
+      const refreshed = await axios.get(`${API_URL}/api/channels`);
+      setChannels(refreshed.data.channels);
     }
     setShowEditModal(false);
     setEditChannel(undefined);
