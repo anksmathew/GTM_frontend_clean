@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import ChannelDetailModal, { Channel, ChannelWithHistory } from './ChannelDetailModal';
+import ChannelDetailModal, { ChannelWithHistory } from './ChannelDetailModal';
 
 const statusColors: Record<string, string> = {
   'Active': 'bg-green-100 text-green-700',
