@@ -8,7 +8,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Product Launch Dashboard",
+  title: "Project Orbit Launch!",
   description: "A dashboard for managing product launches",
 };
 
