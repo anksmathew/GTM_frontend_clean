@@ -94,7 +94,9 @@ const PersonaManager = () => {
     const assignedPersonaIds = new Set<number>();
     for (const c of res.data.campaigns || []) {
       const r = await axios.get<{ personas: Persona[] }>(`${API_URL}/api/campaigns/${c.id}/personas`);
-      assignments[c.id] = r.data.personas.map((p: Persona) => p.id);
+      assignments[c.id] = r.data.personas
+        .map((p: Persona) => p.id)
+        .filter((id): id is number => typeof id === 'number');
       r.data.personas.forEach((p: Persona) => assignedPersonaIds.add(p.id));
     }
     setAssigned(assignments);
