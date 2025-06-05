@@ -1,8 +1,9 @@
 'use client';
 
-import ProductPage from '@/components/ProductPage';
+import React from 'react';
+import ProductPage from '../../../components/ProductPage';
 
-export default function Page({ params }: { params: Promise<{ id: string }> }) {
+export default function Page({ params }: { params: { id: string } }) {
   console.log('Page params:', params); // Add logging to debug
   return <ProductPage params={params} />;
 } 
