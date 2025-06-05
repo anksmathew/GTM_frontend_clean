@@ -97,7 +97,9 @@ const PersonaManager = () => {
       assignments[c.id] = r.data.personas
         .map((p: Persona) => p.id)
         .filter((id): id is number => typeof id === 'number');
-      r.data.personas.forEach((p: Persona) => assignedPersonaIds.add(p.id));
+      r.data.personas.forEach((p: Persona) => {
+        if (typeof p.id === 'number') assignedPersonaIds.add(p.id);
+      });
     }
     setAssigned(assignments);
     // Unassigned personas
