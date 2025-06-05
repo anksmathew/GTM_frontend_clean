@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import axios from 'axios';
+import { useRouter } from 'next/navigation';
 
 type Product = {
   id: number;
@@ -39,6 +40,7 @@ const statusColors: Record<string, string> = {
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 const ProductList = forwardRef((props, ref) => {
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [newProduct, setNewProduct] = useState({
     name: '',
@@ -92,6 +94,7 @@ const ProductList = forwardRef((props, ref) => {
     try {
       const response = await axios.get<{ campaigns: Product[] }>(`${API_URL}/api/campaigns`);
       const campaigns = response.data.campaigns;
+      console.log('Fetched campaigns:', campaigns);
       // Fetch channels for each campaign
       const campaignsWithChannels = await Promise.all(campaigns.map(async (c: Product) => {
         const res = await axios.get<{ channels: Channel[] }>(`${API_URL}/api/campaigns/${c.id}/channels`);
@@ -211,6 +214,16 @@ const ProductList = forwardRef((props, ref) => {
     return matchesSearch && matchesStatus && matchesDate;
   });
 
+  const handleRowClick = (id: number, event: React.MouseEvent) => {
+    // Don't navigate if clicking on action buttons
+    if ((event.target as HTMLElement).closest('button')) {
+      return;
+    }
+    event.preventDefault();
+    console.log('Navigating to campaign:', id);
+    router.push(`/products/${id}`);
+  };
+
   useImperativeHandle(ref, () => ({
     refresh: fetchProducts
   }));
@@ -239,7 +252,11 @@ const ProductList = forwardRef((props, ref) => {
           </thead>
           <tbody className="divide-y divide-[var(--color-neutral-100)]">
             {filteredProducts.map((product) => (
-              <tr key={product.id} className="hover:bg-[var(--color-neutral-50)] transition-colors duration-150">
+              <tr 
+                key={product.id} 
+                className="hover:bg-[var(--color-neutral-50)] transition-colors duration-150 cursor-pointer"
+                onClick={(e) => handleRowClick(product.id, e)}
+              >
                 <td className="py-4 px-4">
                   <div>
                     <div className="font-medium text-[var(--color-neutral-900)]">{product.name}</div>
@@ -283,13 +300,19 @@ const ProductList = forwardRef((props, ref) => {
                   <div className="flex space-x-2">
                     <button
                       className="p-2 text-[var(--color-neutral-500)] hover:text-[var(--color-primary-500)] transition-colors duration-150"
-                      onClick={() => handleEditProduct(product.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditProduct(product.id);
+                      }}
                     >
                       ✏️
                     </button>
                     <button
                       className="p-2 text-[var(--color-neutral-500)] hover:text-[var(--color-error-500)] transition-colors duration-150"
-                      onClick={() => handleDeleteProduct(product.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteProduct(product.id);
+                      }}
                     >
                       🗑️
                     </button>
