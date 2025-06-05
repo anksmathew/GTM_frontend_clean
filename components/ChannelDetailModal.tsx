@@ -122,6 +122,9 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
   const avgCTR = historicalCTR.length ? average(historicalCTR) : null;
   const avgCR = historicalConversionRate.length ? average(historicalConversionRate) : null;
 
+  // Calculate total spend from monthlySpend for budget donut
+  const totalMonthlySpend = monthlySpend.reduce((sum, v) => sum + v, 0);
+
   // Chart data uses percentage values
   const performanceData = {
     labels: months,
@@ -149,7 +152,7 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
     labels: ['Spent', 'Remaining'],
     datasets: [
       {
-        data: [channel.spend, channel.budget - channel.spend],
+        data: [totalMonthlySpend, channel.budget - totalMonthlySpend],
         backgroundColor: ['#ff6b8a', '#4fd1c5'],
       },
     ],
@@ -171,7 +174,6 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
     { id: 'performance', label: 'Performance' },
     { id: 'budget', label: 'Budget' },
     { id: 'campaigns', label: 'Campaigns' },
-    { id: 'personas', label: 'Personas' },
     { id: 'recommendations', label: 'Recommendations' },
   ];
 
@@ -217,9 +219,6 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
         }
         setCampaigns(filtered);
       });
-    }
-    if (activeTab === 'personas') {
-      axios.get(`${API_URL}/api/personas`).then(res => setPersonas(res.data.personas || []));
     }
   }, [activeTab, channel.id]);
 
@@ -325,47 +324,65 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
   const handleAddCampaign = async (e: React.FormEvent) => {
     e.preventDefault();
     setAddingCampaign(true);
-    if (addMode === 'create') {
-      if (!newCampaign.name.trim()) return;
-      // Create new campaign
-      const res = await axios.post(`${API_URL}/api/campaigns`, { name: newCampaign.name, status: newCampaign.status });
-      const newId = res.data.id;
-      // Assign to this channel
-      await axios.post(`${API_URL}/api/campaigns/${newId}/channels`, { channelIds: [channel.id] });
-    } else {
-      // Assign existing campaign
-      if (!newCampaign.id) return;
-      await axios.post(`${API_URL}/api/campaigns/${newCampaign.id}/channels`, { channelIds: [channel.id] });
+    try {
+      if (addMode === 'create') {
+        if (!newCampaign.name.trim()) return;
+        // Create new campaign
+        const res = await axios.post(`${API_URL}/api/campaigns`, { name: newCampaign.name, status: newCampaign.status });
+        const newId = res.data.id;
+        // Assign to this channel
+        await axios.post(`${API_URL}/api/campaigns/${newId}/channels`, { channelIds: [channel.id] });
+      } else {
+        // Assign existing campaign
+        if (!newCampaign.id) return;
+        await axios.post(`${API_URL}/api/campaigns/${newCampaign.id}/channels`, { channelIds: [channel.id] });
+      }
+      
+      // Fetch only the campaigns assigned to this channel
+      const all: Campaign[] = await axios.get(`${API_URL}/api/campaigns`).then(res => res.data.campaigns || []);
+      const filtered: Campaign[] = [];
+      for (const c of all) {
+        const chRes = await axios.get<{ channels: Channel[] }>(`${API_URL}/api/campaigns/${c.id}/channels`);
+        if (chRes.data.channels.some((ch: Channel) => ch.id === channel.id)) {
+          filtered.push(c);
+        }
+      }
+      setCampaigns(filtered);
+      
+      setNewCampaign({ name: '', status: 'Planned' });
+      setShowAddCampaignModal(false);
+    } catch (error) {
+      console.error('Error adding campaign:', error);
+    } finally {
+      setAddingCampaign(false);
     }
-    await axios.get(`${API_URL}/api/campaigns`).then(res => setCampaigns(res.data.campaigns || []));
-    setNewCampaign({ name: '', status: 'Planned' });
-    setShowAddCampaignModal(false);
-    setAddingCampaign(false);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/30 backdrop-blur-sm">
       <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-4xl relative max-h-[90vh] overflow-y-auto">
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl"
+          className="absolute top-4 right-4 text-neutral-400 hover:text-neutral-700 transition-colors duration-200"
           aria-label="Close"
         >
-          ×
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
         <div className="mb-6">
-          <h2 className="text-2xl font-bold">{channel.name}</h2>
+          <h2 className="text-2xl font-bold text-neutral-900">{channel.name}</h2>
         </div>
 
-        <div className="flex gap-4 border-b mb-6">
+        <div className="flex gap-4 border-b border-neutral-200 mb-6">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`px-4 py-2 -mb-px font-medium text-sm border-b-2 transition-colors duration-200 ${
                 activeTab === tab.id
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-blue-600'
+                  ? 'border-primary-600 text-primary-600'
+                  : 'border-transparent text-neutral-500 hover:text-primary-600'
               }`}
             >
               {tab.label}
@@ -374,6 +391,108 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
         </div>
 
         <div className="space-y-6">
+          {activeTab === 'edit' && (
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Edit Channel</h3>
+              <form
+                onSubmit={e => {
+                  e.preventDefault();
+                  handleSaveAll();
+                }}
+                className="space-y-4"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex flex-col justify-center">
+                    <label className="block text-sm font-medium mb-1">Name</label>
+                    <input
+                      type="text"
+                      value={form.name}
+                      onChange={e => setForm({ ...form, name: e.target.value })}
+                      className="w-full border rounded px-2 py-2 h-11"
+                      required
+                    />
+                  </div>
+                  <div className="flex flex-col justify-center">
+                    <label className="block text-sm font-medium mb-1">Type</label>
+                    <select
+                      value={form.type}
+                      onChange={e => setForm({ ...form, type: e.target.value })}
+                      className="w-full border rounded px-2 py-2 h-11"
+                      required
+                    >
+                      <option value="Email">Email</option>
+                      <option value="Social">Social</option>
+                      <option value="Paid Ads">Paid Ads</option>
+                      <option value="Content">Content</option>
+                      <option value="Events">Events</option>
+                      <option value="SEO">SEO</option>
+                      <option value="Partnerships">Partnerships</option>
+                      <option value="Sales">Sales</option>
+                      <option value="PR">PR</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Budget</label>
+                    <input
+                      type="number"
+                      value={form.budget}
+                      onChange={e => setForm({ ...form, budget: Number(e.target.value) })}
+                      className="w-full border rounded px-2 py-1"
+                      min="0"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Status</label>
+                    <select
+                      value={form.status}
+                      onChange={e => setForm({ ...form, status: e.target.value })}
+                      className="w-full border rounded px-2 py-1"
+                      required
+                    >
+                      <option value="Active">Active</option>
+                      <option value="Paused">Paused</option>
+                      <option value="Delayed">Delayed</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2 mt-4">
+                  <button
+                    type="button"
+                    onClick={() => setForm({
+                      name: channel.name || '',
+                      type: channel.type || 'Email',
+                      budget: channel.budget || 0,
+                      spend: channel.spend || 0,
+                      ctr: channel.ctr || 0,
+                      conversion_rate: channel.conversion_rate || 0,
+                      roi: channel.roi || 0,
+                      status: channel.status || 'Active',
+                      target_ctr: channel.target_ctr || 0,
+                      target_conversion: channel.target_conversion || 0,
+                      target_roi: channel.target_roi || 0,
+                      api_key: channel.api_key || '',
+                      tracking_code: channel.tracking_code || '',
+                      assigned_campaigns: channel.assigned_campaigns || [],
+                      assigned_personas: channel.assigned_personas || [],
+                    })}
+                    className="btn btn-secondary"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                  >
+                    Save
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
           {activeTab === 'performance' && (
             <div>
               <h3 className="text-lg font-semibold mb-4">Performance Metrics</h3>
@@ -403,11 +522,11 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
                   <h4 className="text-sm font-medium mb-2">Key Metrics</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-white p-3 rounded shadow">
-                      <div className="text-sm text-gray-500">CTR</div>
+                      <div className="text-sm text-gray-500">Average CTR</div>
                       <div className="text-xl font-bold">{avgCTR !== null ? `${avgCTR.toFixed(1)}%` : '-'}</div>
                     </div>
                     <div className="bg-white p-3 rounded shadow">
-                      <div className="text-sm text-gray-500">Conversion Rate</div>
+                      <div className="text-sm text-gray-500">Average CR</div>
                       <div className="text-xl font-bold">{avgCR !== null ? `${avgCR.toFixed(1)}%` : '-'}</div>
                     </div>
                     <div className="bg-white p-3 rounded shadow flex items-center gap-2">
@@ -523,27 +642,52 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-gray-50 p-4 rounded-lg flex flex-col items-center justify-center">
                   <h4 className="text-sm font-medium mb-2">Budget Allocation</h4>
-                  <div className="relative w-56 h-56">
-                    <Doughnut
-                      data={budgetData}
-                      options={{
-                        cutout: '75%',
-                        plugins: {
-                          legend: {
-                            display: true,
-                            position: 'top',
-                            labels: { boxWidth: 16, font: { size: 14 } }
+                  <div className="relative w-full max-w-md h-64 flex items-center justify-center">
+                    <Bar
+                      data={{
+                        labels: [''],
+                        datasets: [
+                          {
+                            label: 'Budget',
+                            data: [channel.budget],
+                            backgroundColor: '#4fd1c5',
+                            barPercentage: 0.5,
+                            categoryPercentage: 0.5,
                           },
+                          {
+                            label: 'Spend',
+                            data: [totalMonthlySpend],
+                            backgroundColor: totalMonthlySpend > channel.budget ? ['#ff6b8a', '#ef4444'] : ['#ff6b8a'],
+                            barPercentage: 0.5,
+                            categoryPercentage: 0.5,
+                          },
+                        ],
+                      }}
+                      options={{
+                        indexAxis: 'y',
+                        plugins: {
+                          legend: { display: true, position: 'top' },
                           tooltip: { enabled: true },
+                        },
+                        responsive: true,
+                        scales: {
+                          x: {
+                            beginAtZero: true,
+                            suggestedMax: Math.max(channel.budget, totalMonthlySpend) * 1.2,
+                            title: { display: true, text: 'Amount ($)' },
+                            grid: { display: true },
+                          },
+                          y: {
+                            grid: { display: false },
+                            ticks: { display: false },
+                          },
                         },
                       }}
                     />
-                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                      <span className="text-lg font-bold text-pink-500">${channel.spend}</span>
-                      <span className="text-xs text-gray-500">Spent</span>
-                      <span className="text-lg font-bold text-teal-500 mt-2">${channel.budget - channel.spend}</span>
-                      <span className="text-xs text-gray-500">Remaining</span>
-                    </div>
+                  </div>
+                  <div className="flex flex-col items-center mt-4">
+                    <span className="text-2xl font-bold text-neutral-900">${channel.budget}</span>
+                    <span className="text-lg font-semibold text-neutral-700 mt-1">Budget</span>
                   </div>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg relative">
@@ -603,13 +747,13 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
                             <button
                               type="button"
                               onClick={() => setShowEditSpend(false)}
-                              className="bg-gray-400 text-white px-4 py-2 rounded font-semibold hover:bg-gray-500"
+                              className="btn btn-secondary"
                             >
                               Cancel
                             </button>
                             <button
                               type="submit"
-                              className="bg-blue-600 text-white px-4 py-2 rounded font-semibold hover:bg-blue-700"
+                              className="btn btn-primary"
                             >
                               Save
                             </button>
@@ -625,32 +769,61 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
 
           {activeTab === 'campaigns' && (
             <div>
-              <h3 className="text-lg font-semibold mb-4">Campaign Management</h3>
-              <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold mb-4 text-neutral-900">Campaign Management</h3>
+              <div className="bg-neutral-50 border border-neutral-200 p-6 rounded-xl">
                 <div className="flex justify-between items-center mb-4">
-                  <h4 className="text-sm font-medium">Active Campaigns</h4>
+                  <h4 className="text-sm font-semibold text-neutral-700">Active Campaigns</h4>
                   <button
-                    className="bg-blue-600 text-white px-4 py-2 rounded font-semibold hover:bg-blue-700"
+                    className="btn btn-primary"
                     onClick={() => setShowAddCampaignModal(true)}
                   >
                     Add
                   </button>
                 </div>
-                <div className="space-y-2">
-                  {campaigns.filter(campaign => campaign.id != null).map(campaign => (
-                    <div key={campaign.id} className="bg-white p-3 rounded shadow flex justify-between items-center">
-                      <div>
-                        <div className="font-medium text-lg">{campaign.name}</div>
-                        <div className="text-sm text-gray-500">Status: {campaign.status}</div>
+                <div className="space-y-3">
+                  {campaigns && campaigns.length > 0 ? (
+                    campaigns.map(campaign => (
+                      <div key={campaign.id} className="bg-white border border-neutral-200 p-4 rounded-lg shadow-sm flex justify-between items-center hover:bg-neutral-50 transition-colors">
+                        <div>
+                          <div className="font-semibold text-base text-neutral-900">{campaign.name}</div>
+                          <div className="text-sm text-neutral-500">Status: {campaign.status}</div>
+                        </div>
+                        <div className="flex gap-3">
+                          <button
+                            className="text-primary-600 hover:text-primary-700 font-medium text-sm"
+                            onClick={() => router.push(`/campaigns/${campaign.id}?edit=1`)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="text-error-600 hover:text-error-700 font-medium text-sm"
+                            onClick={async () => {
+                              // Remove campaign from this channel
+                              try {
+                                await axios.post(`${API_URL}/api/campaigns/${campaign.id}/channels`, { channelIds: [] });
+                                // Refresh campaigns assigned to this channel
+                                const all = await axios.get(`${API_URL}/api/campaigns`).then(res => res.data.campaigns || []);
+                                const filtered = [];
+                                for (const c of all) {
+                                  const chRes = await axios.get<{ channels: Channel[] }>(`${API_URL}/api/campaigns/${c.id}/channels`);
+                                  if (chRes.data.channels.some((ch: Channel) => ch.id === channel.id)) {
+                                    filtered.push(c);
+                                  }
+                                }
+                                setCampaigns(filtered);
+                              } catch (error) {
+                                console.error('Error removing campaign from channel:', error);
+                              }
+                            }}
+                          >
+                            Remove
+                          </button>
+                        </div>
                       </div>
-                      <button
-                        className="text-blue-600 hover:text-blue-800 font-semibold"
-                        onClick={() => router.push(`/campaigns/${campaign.id}?edit=1`)}
-                      >
-                        Edit
-                      </button>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <div className="text-neutral-500">No campaigns assigned to this channel.</div>
+                  )}
                 </div>
               </div>
               {showAddCampaignModal && (
@@ -679,51 +852,41 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
                       </button>
                     </div>
                     {addMode === 'select' && (
-                      <div className="flex gap-2 mb-4">
-                        {allCampaigns.map(campaign => (
-                          <button
-                            key={campaign.id}
-                            className="bg-gray-100 text-gray-700 px-3 py-1 rounded font-semibold hover:bg-blue-600 hover:text-white"
-                            onClick={() => { setNewCampaign({ id: campaign.id, name: campaign.name, status: campaign.status }); setShowAddCampaignModal(false); }}
-                          >
-                            {campaign.name}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                    {addMode === 'create' && (
-                      <form onSubmit={handleAddCampaign}>
-                        <div className="flex flex-col gap-2">
-                          <input
-                            type="text"
-                            value={newCampaign.name}
-                            onChange={e => setNewCampaign({ ...newCampaign, name: e.target.value })}
-                            placeholder="Campaign Name"
-                            className="border rounded px-2 py-1"
-                          />
+                      <form onSubmit={handleAddCampaign} className="flex flex-col gap-4 mb-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Select Campaign</label>
                           <select
-                            value={newCampaign.status}
-                            onChange={e => setNewCampaign({ ...newCampaign, status: e.target.value })}
-                            className="border rounded px-2 py-1"
+                            className="w-full border rounded px-2 py-1"
+                            value={newCampaign.id || ''}
+                            onChange={e => {
+                              const selectedId = Number(e.target.value);
+                              const selected = allCampaigns.find(c => c.id === selectedId);
+                              if (selected) {
+                                setNewCampaign({ id: selected.id, name: selected.name, status: selected.status });
+                              }
+                            }}
+                            required
                           >
-                            <option value="Planned">Planned</option>
-                            <option value="Active">Active</option>
-                            <option value="Paused">Paused</option>
+                            <option value="" disabled>Select a campaign</option>
+                            {allCampaigns.map(campaign => (
+                              <option key={campaign.id} value={campaign.id}>{campaign.name}</option>
+                            ))}
                           </select>
                         </div>
-                        <div className="flex justify-end gap-2 mt-4">
+                        <div className="flex justify-end gap-2">
                           <button
                             type="button"
                             onClick={() => setShowAddCampaignModal(false)}
-                            className="bg-gray-400 text-white px-4 py-2 rounded font-semibold hover:bg-gray-500"
+                            className="btn btn-secondary"
                           >
                             Cancel
                           </button>
                           <button
                             type="submit"
-                            className="bg-blue-600 text-white px-4 py-2 rounded font-semibold hover:bg-blue-700"
+                            className="btn btn-primary"
+                            disabled={!newCampaign.id || addingCampaign}
                           >
-                            Add Campaign
+                            {addingCampaign ? 'Saving...' : 'Save'}
                           </button>
                         </div>
                       </form>
@@ -734,34 +897,55 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
             </div>
           )}
 
-          {activeTab === 'personas' && (
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Personas</h3>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="space-y-2">
-                  {personas.map(persona => (
-                    <div key={persona.id} className="bg-white p-3 rounded shadow flex justify-between items-center">
-                      <div>
-                        <div className="font-medium text-lg">{persona.name}</div>
-                        <div className="text-sm text-gray-500">Title: {persona.title}</div>
-                        <div className="text-sm text-gray-500">Gender: {persona.gender}</div>
-                      </div>
-                      <button
-                        className="text-blue-600 hover:text-blue-800 font-semibold"
-                        onClick={() => router.push(`/personas/${persona.id}?edit=1`)}
-                      >
-                        Edit
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
           {activeTab === 'recommendations' && (
             <div>
               <h3 className="text-lg font-semibold mb-4">Recommendations</h3>
+              {/* Add Recommendation Form */}
+              <div className="bg-white p-4 rounded-lg shadow mb-4">
+                <h4 className="text-md font-semibold mb-2">Add Recommendation</h4>
+                <form
+                  onSubmit={e => {
+                    e.preventDefault();
+                    if (!manualRecommendationTitle.trim() || !manualRecommendationDesc.trim()) return;
+                    setRecommendations([
+                      ...recommendations,
+                      { title: manualRecommendationTitle, description: manualRecommendationDesc }
+                    ]);
+                    setManualRecommendationTitle('');
+                    setManualRecommendationDesc('');
+                  }}
+                  className="space-y-2"
+                >
+                  <input
+                    type="text"
+                    className="w-full border rounded px-2 py-2"
+                    placeholder="Recommendation Title"
+                    value={manualRecommendationTitle}
+                    onChange={e => setManualRecommendationTitle(e.target.value)}
+                    maxLength={60}
+                    required
+                  />
+                  <textarea
+                    className="w-full border rounded px-2 py-2"
+                    placeholder="Recommendation Description"
+                    value={manualRecommendationDesc}
+                    onChange={e => setManualRecommendationDesc(e.target.value)}
+                    rows={3}
+                    maxLength={300}
+                    required
+                  />
+                  <div className="flex justify-end">
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      disabled={!manualRecommendationTitle.trim() || !manualRecommendationDesc.trim()}
+                    >
+                      Add Recommendation
+                    </button>
+                  </div>
+                </form>
+              </div>
+              {/* Existing Recommendations List */}
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="space-y-2">
                   {recommendations.map((recommendation, idx) => (

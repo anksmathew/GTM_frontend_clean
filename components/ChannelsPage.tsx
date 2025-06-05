@@ -89,6 +89,7 @@ const ChannelsPage = () => {
       integration_settings: '',
       historicalCTR: Array.isArray(updatedChannel.historicalCTR) ? updatedChannel.historicalCTR : [],
       historicalConversionRate: Array.isArray(updatedChannel.historicalConversionRate) ? updatedChannel.historicalConversionRate : [],
+      recommendations: Array.isArray(updatedChannel.recommendations) ? updatedChannel.recommendations : [],
     };
     if (updatedChannel.id !== undefined) {
       await axios.put(`${API_URL}/api/channels/${updatedChannel.id}`, payload);

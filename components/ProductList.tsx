@@ -47,7 +47,7 @@ const ProductList = forwardRef((props, ref) => {
     description: '',
     launch_date: '',
     status: statusOptions[0],
-    budget: 0,
+    budget: '',
     team: ''
   });
   const [error, setError] = useState('');
@@ -133,7 +133,7 @@ const ProductList = forwardRef((props, ref) => {
       // Save assigned channels
       await axios.post(`${API_URL}/api/campaigns/${newId}/channels`, { channelIds: selectedChannels });
       await fetchProducts();
-      setNewProduct({ name: '', description: '', launch_date: '', status: statusOptions[0], budget: 0, team: '' });
+      setNewProduct({ name: '', description: '', launch_date: '', status: statusOptions[0], budget: '', team: '' });
       setSelectedChannels([]);
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response && error.response.data && error.response.data.error) {
@@ -262,7 +262,7 @@ const ProductList = forwardRef((props, ref) => {
             className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
           />
           <input
-            type="text"
+            type="date"
             name="launch_date"
             value={newProduct.launch_date}
             onChange={handleInputChange}
@@ -279,22 +279,38 @@ const ProductList = forwardRef((props, ref) => {
               <option key={option} value={option}>{option}</option>
             ))}
           </select>
-          <input
-            type="number"
-            name="budget"
-            value={newProduct.budget}
-            onChange={handleInputChange}
-            placeholder="Budget"
-            className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
-          />
-          <input
-            type="text"
+          <div className="relative flex items-center">
+            <span className="absolute left-3 text-neutral-400 font-medium pointer-events-none">Budget</span>
+            <input
+              type="number"
+              name="budget"
+              value={newProduct.budget}
+              onChange={handleInputChange}
+              className="pl-20 px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400 w-full bg-white text-neutral-900 placeholder:text-neutral-400"
+              min="0"
+            />
+          </div>
+          <select
             name="team"
             value={newProduct.team}
             onChange={handleInputChange}
-            placeholder="Team"
             className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
-          />
+          >
+            <option value="">Select Team</option>
+            <option value="Engineering">Engineering</option>
+            <option value="Product">Product</option>
+            <option value="Design">Design</option>
+            <option value="Marketing">Marketing</option>
+            <option value="Sales">Sales</option>
+            <option value="Customer Success">Customer Success</option>
+            <option value="Support">Support</option>
+            <option value="HR">HR</option>
+            <option value="Finance">Finance</option>
+            <option value="Operations">Operations</option>
+            <option value="QA">QA</option>
+            <option value="IT">IT</option>
+            <option value="Legal">Legal</option>
+          </select>
         </div>
         <div className="mt-4 flex justify-end">
           <button
@@ -338,7 +354,7 @@ const ProductList = forwardRef((props, ref) => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-neutral-200">
-            {products.map((product) => (
+            {filteredProducts.map((product) => (
               <tr
                 key={product.id}
                 className="hover:bg-neutral-50 cursor-pointer"
@@ -363,7 +379,7 @@ const ProductList = forwardRef((props, ref) => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleEditProduct(product.id);
+                      router.push(`/products/${product.id}`);
                     }}
                     className="text-primary-600 hover:text-primary-900 mr-4"
                   >
