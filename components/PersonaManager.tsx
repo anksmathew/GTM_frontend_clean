@@ -3,31 +3,10 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import type { DraggableProvided, DroppableProvided } from '@hello-pangea/dnd';
+import PersonaDetailModal, { Persona as PersonaDetailType } from './PersonaDetailModal';
 
 // Persona data structure
-type Persona = {
-  id: number;
-  name: string;
-  title: string;
-  avatar: string;
-  age_range: string;
-  gender: string;
-  location: string;
-  income_bracket: string;
-  job_role: string;
-  company_size: string;
-  pain_points: string;
-  goals: string;
-  motivations: string;
-  interests: string;
-  values: string;
-  buying_habits: string;
-  preferred_channels: string;
-  tech_adoption: string;
-  social_media_usage: string;
-  decision_factors: string;
-  market_size: number;
-};
+type Persona = PersonaDetailType;
 
 type Campaign = {
   id: number;
@@ -82,6 +61,8 @@ const PersonaManager = () => {
   const [assigned, setAssigned] = useState<{ [campaignId: number]: number[] }>({});
   const [unassigned, setUnassigned] = useState<number[]>([]);
   const [personaCampaigns, setPersonaCampaigns] = useState<{ [personaId: number]: Campaign[] }>({});
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedPersona, setSelectedPersona] = useState<PersonaDetailType | null>(null);
 
   useEffect(() => {
     fetchPersonas();
@@ -92,7 +73,9 @@ const PersonaManager = () => {
       fetchCampaigns();
       // Fetch campaigns for each persona
       personas.forEach(persona => {
-        fetchPersonaCampaigns(persona.id);
+        if (typeof persona.id === 'number') {
+          fetchPersonaCampaigns(persona.id);
+        }
       });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -116,17 +99,19 @@ const PersonaManager = () => {
     }
     setAssigned(assignments);
     // Unassigned personas
-    const allPersonaIds = personas.map(p => p.id);
+    const allPersonaIds = personas.map(p => p.id).filter((id): id is number => typeof id === 'number');
     setUnassigned(allPersonaIds.filter(id => !assignedPersonaIds.has(id)));
   };
 
   const fetchPersonaCampaigns = async (personaId: number) => {
     try {
       const res = await axios.get<{ campaigns: Campaign[] }>(`${API_URL}/api/personas/${personaId}/campaigns`);
-      setPersonaCampaigns(prev => ({
-        ...prev,
-        [personaId]: res.data.campaigns
-      }));
+      if (typeof personaId === 'number') {
+        setPersonaCampaigns(prev => ({
+          ...prev,
+          [personaId]: res.data.campaigns
+        }));
+      }
     } catch (error) {
       console.error(`Error fetching campaigns for persona ${personaId}:`, error);
     }
@@ -214,6 +199,19 @@ const PersonaManager = () => {
     fetchCampaigns();
   };
 
+  const handleViewDetails = (persona: Persona) => {
+    setSelectedPersona(persona);
+    setShowDetailModal(true);
+  };
+
+  const handleEditPersonaDetails = async (updatedPersona: PersonaDetailType) => {
+    if (typeof updatedPersona.id === 'number') {
+      await axios.put(`${API_URL}/api/personas/${updatedPersona.id}`, updatedPersona);
+      fetchPersonas();
+      setSelectedPersona({ ...updatedPersona });
+    }
+  };
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
@@ -270,8 +268,8 @@ const PersonaManager = () => {
             <div className="mt-4">
               <h4 className="text-sm font-medium text-[var(--color-neutral-700)] mb-2">Targeted Campaigns</h4>
               <div className="space-y-2">
-                {personaCampaigns[persona.id]?.length > 0 ? (
-                  personaCampaigns[persona.id].map((campaign) => (
+                {typeof persona.id === 'number' && personaCampaigns[persona.id]?.length > 0 ? (
+                  personaCampaigns[persona.id].map((campaign: any) => (
                     <div
                       key={campaign.id}
                       className="flex items-center justify-between p-2 bg-[var(--color-neutral-50)] rounded-lg hover:bg-[var(--color-neutral-100)] transition-colors duration-150"
@@ -300,7 +298,7 @@ const PersonaManager = () => {
               </button>
               <button
                 className="px-4 py-2 rounded-lg font-medium bg-blue-500 text-white hover:bg-blue-600"
-                onClick={() => {/* Handle view details */}}
+                onClick={() => handleViewDetails(persona)}
               >
                 View Details
               </button>
@@ -436,6 +434,14 @@ const PersonaManager = () => {
             </form>
           </div>
         </div>
+      )}
+
+      {showDetailModal && selectedPersona && (
+        <PersonaDetailModal
+          persona={selectedPersona}
+          onClose={() => setShowDetailModal(false)}
+          onEdit={handleEditPersonaDetails}
+        />
       )}
     </div>
   );
