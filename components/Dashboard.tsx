@@ -35,7 +35,7 @@ const Dashboard = () => {
         ))}
       </nav>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
         {activeTab === 'channels' && <ChannelsPage />}
         {activeTab === 'campaigns' && <ProductList />}
         {activeTab === 'personas' && <PersonaManager />}
