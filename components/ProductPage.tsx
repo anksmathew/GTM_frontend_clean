@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 
@@ -31,28 +31,25 @@ type Channel = {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
-const ProductPage = ({ params }: { params: Promise<{ id: string }> }) => {
+const ProductPage = ({ params }: { params: { id: string } }) => {
   const router = useRouter();
   const [product, setProduct] = useState<Product | null>(null);
   const [channels, setChannels] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   
-  // Unwrap params using React.use()
-  const unwrappedParams = use(params);
-
   useEffect(() => {
     const fetchProductData = async () => {
       try {
         setLoading(true);
-        console.log('ProductPage params:', unwrappedParams);
-        if (!unwrappedParams?.id) {
+        console.log('ProductPage params:', params);
+        if (!params?.id) {
           setError('No campaign ID provided');
           setLoading(false);
           return;
         }
 
-        const campaignId = unwrappedParams.id;
+        const campaignId = params.id;
         console.log('Fetching campaign with ID:', campaignId);
         console.log('API URL:', `${API_URL}/api/campaigns/${campaignId}`);
 
@@ -77,7 +74,7 @@ const ProductPage = ({ params }: { params: Promise<{ id: string }> }) => {
     };
 
     fetchProductData();
-  }, [unwrappedParams]);
+  }, [params]);
 
   if (loading) {
     return (

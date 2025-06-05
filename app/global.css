@@ -1,0 +1,36 @@
+@import '../styles/colors.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-neutral-50 text-neutral-900;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-colors duration-200 ease-in-out;
+  }
+
+  .btn-primary {
+    @apply bg-primary-500 text-white hover:bg-primary-600 focus:ring-2 focus:ring-primary-400 focus:ring-offset-2;
+  }
+
+  .btn-secondary {
+    @apply bg-neutral-100 text-neutral-700 hover:bg-neutral-200 focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2;
+  }
+
+  .btn-success {
+    @apply bg-success-500 text-white hover:bg-success-600 focus:ring-2 focus:ring-success-400 focus:ring-offset-2;
+  }
+
+  .btn-warning {
+    @apply bg-warning-500 text-white hover:bg-warning-600 focus:ring-2 focus:ring-warning-400 focus:ring-offset-2;
+  }
+
+  .btn-error {
+    @apply bg-error-500 text-white hover:bg-error-600 focus:ring-2 focus:ring-error-400 focus:ring-offset-2;
+  }
+}

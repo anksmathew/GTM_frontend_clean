@@ -6,9 +6,9 @@ import ChannelDetailModal, { ChannelWithHistory } from './ChannelDetailModal';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 const statusColors: Record<string, string> = {
-  'Active': 'bg-green-100 text-green-700',
-  'Paused': 'bg-yellow-100 text-yellow-700',
-  'Inactive': 'bg-gray-100 text-gray-700',
+  'Active': 'bg-success-100 text-success-700',
+  'Paused': 'bg-warning-100 text-warning-700',
+  'Inactive': 'bg-neutral-100 text-neutral-700',
 };
 
 const typeIcons: Record<string, string> = {
@@ -104,7 +104,7 @@ const ChannelsPage = () => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold text-[var(--color-neutral-900)]">Marketing Channels</h2>
+        <h2 className="text-2xl font-semibold text-neutral-900">Marketing Channels</h2>
         <button
           onClick={() => {
             setEditChannel({
@@ -140,17 +140,17 @@ const ChannelsPage = () => {
         {channels.map((channel) => (
           <div
             key={channel.id}
-            className="card card-hover p-6 cursor-pointer"
+            className="bg-white rounded-xl border border-neutral-200 p-6 hover:shadow-md transition-shadow duration-200 cursor-pointer"
           >
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center space-x-3">
                 <span className="text-2xl">{typeIcons[channel.type] || '📊'}</span>
                 <div>
-                  <h3 className="font-medium text-[var(--color-neutral-900)]">{channel.name}</h3>
-                  <p className="text-sm text-[var(--color-neutral-500)]">{channel.type}</p>
+                  <h3 className="font-medium text-neutral-900">{channel.name}</h3>
+                  <p className="text-sm text-neutral-500">{channel.type}</p>
                 </div>
               </div>
-              <span className={`status-badge status-badge-${channel.status}`}>
+              <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[channel.status]}`}>
                 {channel.status.charAt(0).toUpperCase() + channel.status.slice(1)}
               </span>
             </div>
@@ -158,14 +158,14 @@ const ChannelsPage = () => {
             <div className="space-y-4">
               <div>
                 <div className="flex justify-between text-sm mb-1">
-                  <span className="text-[var(--color-neutral-600)]">Budget Spent</span>
-                  <span className="font-medium text-[var(--color-neutral-900)]">
+                  <span className="text-neutral-600">Budget Spent</span>
+                  <span className="font-medium text-neutral-900">
                     ${channel.spend.toLocaleString()} / ${channel.budget.toLocaleString()}
                   </span>
                 </div>
-                <div className="h-2 bg-[var(--color-neutral-100)] rounded-full overflow-hidden">
+                <div className="h-2 bg-neutral-100 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-[var(--color-primary-500)] rounded-full transition-all duration-300"
+                    className="h-full bg-primary-500 rounded-full transition-all duration-300"
                     style={{ width: `${(channel.spend / channel.budget) * 100}%` }}
                   />
                 </div>
@@ -199,7 +199,10 @@ const ChannelsPage = () => {
       {showEditModal && editChannel && (
         <ChannelDetailModal
           channel={editChannel}
-          onClose={() => { setShowEditModal(false); setEditChannel(undefined); }}
+          onClose={() => {
+            setShowEditModal(false);
+            setEditChannel(undefined);
+          }}
           onEdit={handleSaveEdit}
         />
       )}
@@ -207,8 +210,12 @@ const ChannelsPage = () => {
       {showDetailModal && selectedChannel && (
         <ChannelDetailModal
           channel={selectedChannel}
-          onClose={() => { setShowDetailModal(false); setSelectedChannel(undefined); }}
-          onEdit={handleEdit}
+          onClose={() => {
+            setShowDetailModal(false);
+            setSelectedChannel(undefined);
+          }}
+          onEdit={handleSaveEdit}
+          isViewOnly={true}
         />
       )}
 

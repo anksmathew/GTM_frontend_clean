@@ -31,10 +31,10 @@ type Channel = {
 const statusOptions = ['Planned', 'In Progress', 'Launched', 'Delayed'];
 
 const statusColors: Record<string, string> = {
-  'Planned': 'bg-blue-100 text-blue-700',
-  'In Progress': 'bg-yellow-100 text-yellow-700',
-  'Launched': 'bg-green-100 text-green-700',
-  'Delayed': 'bg-red-100 text-red-700',
+  'Planned': 'bg-primary-100 text-primary-700',
+  'In Progress': 'bg-warning-100 text-warning-700',
+  'Launched': 'bg-success-100 text-success-700',
+  'Delayed': 'bg-error-100 text-error-700',
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -231,92 +231,153 @@ const ProductList = forwardRef((props, ref) => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold text-[var(--color-neutral-900)]">Product Campaigns</h2>
-        <button className="btn btn-primary">
-          Add Campaign
+        <h2 className="text-2xl font-semibold text-neutral-900">Campaigns</h2>
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          className="btn btn-secondary"
+        >
+          Filters
         </button>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-[var(--color-border)]">
-              <th className="py-4 px-4 font-medium text-[var(--color-neutral-500)] text-left">Product</th>
-              <th className="py-4 px-4 font-medium text-[var(--color-neutral-500)] text-left">Target Date</th>
-              <th className="py-4 px-4 font-medium text-[var(--color-neutral-500)] text-left">Status</th>
-              <th className="py-4 px-4 font-medium text-[var(--color-neutral-500)] text-left">Budget</th>
-              <th className="py-4 px-4 font-medium text-[var(--color-neutral-500)] text-left">Team</th>
-              <th className="py-4 px-4 font-medium text-[var(--color-neutral-500)] text-left">Channel</th>
-              <th className="py-4 px-4 font-medium text-[var(--color-neutral-500)] text-left">Actions</th>
+      {/* Add Campaign Form */}
+      <div className="mb-8 p-6 bg-neutral-50 rounded-xl border border-neutral-200">
+        <h3 className="text-lg font-medium text-neutral-900 mb-4">Add New Campaign</h3>
+        {error && <div className="mb-4 p-3 bg-error-100 text-error-700 rounded-lg">{error}</div>}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input
+            type="text"
+            name="name"
+            value={newProduct.name}
+            onChange={handleInputChange}
+            placeholder="Campaign Name"
+            className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
+          />
+          <input
+            type="text"
+            name="description"
+            value={newProduct.description}
+            onChange={handleInputChange}
+            placeholder="Description"
+            className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
+          />
+          <input
+            type="text"
+            name="launch_date"
+            value={newProduct.launch_date}
+            onChange={handleInputChange}
+            placeholder="Launch Date"
+            className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
+          />
+          <select
+            name="status"
+            value={newProduct.status}
+            onChange={handleInputChange}
+            className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
+          >
+            {statusOptions.map((option) => (
+              <option key={option} value={option}>{option}</option>
+            ))}
+          </select>
+          <input
+            type="number"
+            name="budget"
+            value={newProduct.budget}
+            onChange={handleInputChange}
+            placeholder="Budget"
+            className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
+          />
+          <input
+            type="text"
+            name="team"
+            value={newProduct.team}
+            onChange={handleInputChange}
+            placeholder="Team"
+            className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
+          />
+        </div>
+        <div className="mt-4 flex justify-end">
+          <button
+            onClick={handleAddProduct}
+            className="btn btn-primary"
+          >
+            Add Campaign
+          </button>
+        </div>
+      </div>
+
+      {/* Status Tabs */}
+      <div className="flex space-x-2 mb-6">
+        {statusTabs.map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`
+              px-4 py-2 rounded-lg text-sm font-medium
+              ${activeTab === tab
+                ? 'bg-primary-500 text-white'
+                : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+              }
+            `}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      {/* Product List */}
+      <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+        <table className="min-w-full divide-y divide-neutral-200">
+          <thead className="bg-neutral-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Name</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Launch Date</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Budget</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[var(--color-neutral-100)]">
-            {filteredProducts.map((product) => (
-              <tr 
-                key={product.id} 
-                className="hover:bg-[var(--color-neutral-50)] transition-colors duration-150 cursor-pointer"
+          <tbody className="bg-white divide-y divide-neutral-200">
+            {products.map((product) => (
+              <tr
+                key={product.id}
+                className="hover:bg-neutral-50 cursor-pointer"
                 onClick={(e) => handleRowClick(product.id, e)}
               >
-                <td className="py-4 px-4">
-                  <div>
-                    <div className="font-medium text-[var(--color-neutral-900)]">{product.name}</div>
-                    <div className="text-sm text-[var(--color-neutral-500)]">{product.description}</div>
-                  </div>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm font-medium text-neutral-900">{product.name}</div>
+                  <div className="text-sm text-neutral-500">{product.description}</div>
                 </td>
-                <td className="py-4 px-4 text-[var(--color-neutral-600)]">
-                  {new Date(product.launch_date).toLocaleDateString()}
-                </td>
-                <td className="py-4 px-4">
-                  <span className={`status-badge status-badge-${product.status}`}>
-                    {product.status.charAt(0).toUpperCase() + product.status.slice(1)}
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[product.status]}`}>
+                    {product.status}
                   </span>
                 </td>
-                <td className="py-4 px-4">
-                  <div className="font-medium text-[var(--color-neutral-900)]">
-                    ${product.budget.toLocaleString()}
-                  </div>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
+                  {product.launch_date}
                 </td>
-                <td className="py-4 px-4">
-                  <div className="flex -space-x-2">
-                    {product.team.split(', ').slice(0, 3).map((member, index) => (
-                      <div
-                        key={index}
-                        className="w-8 h-8 rounded-full bg-[var(--color-primary-100)] text-[var(--color-primary-700)] flex items-center justify-center text-sm font-medium border-2 border-white"
-                      >
-                        {member.split(' ')[0][0]}
-                      </div>
-                    ))}
-                    {product.team.split(', ').length > 3 && (
-                      <div className="w-8 h-8 rounded-full bg-[var(--color-neutral-100)] text-[var(--color-neutral-600)] flex items-center justify-center text-sm font-medium border-2 border-white">
-                        +{product.team.split(', ').length - 3}
-                      </div>
-                    )}
-                  </div>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
+                  ${product.budget.toLocaleString()}
                 </td>
-                <td className="py-4 px-4 text-[var(--color-neutral-600)]">
-                  {product.channelNames ? product.channelNames.join(', ') : '-'}
-                </td>
-                <td className="py-4 px-4">
-                  <div className="flex space-x-2">
-                    <button
-                      className="p-2 text-[var(--color-neutral-500)] hover:text-[var(--color-primary-500)] transition-colors duration-150"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditProduct(product.id);
-                      }}
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      className="p-2 text-[var(--color-neutral-500)] hover:text-[var(--color-error-500)] transition-colors duration-150"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteProduct(product.id);
-                      }}
-                    >
-                      🗑️
-                    </button>
-                  </div>
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditProduct(product.id);
+                    }}
+                    className="text-primary-600 hover:text-primary-900 mr-4"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteProduct(product.id);
+                    }}
+                    className="text-error-600 hover:text-error-900"
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
             ))}

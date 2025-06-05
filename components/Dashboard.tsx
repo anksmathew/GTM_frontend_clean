@@ -24,8 +24,8 @@ const Dashboard = () => {
               flex items-center px-4 py-2.5 text-sm font-medium rounded-lg
               transition-all duration-200 ease-in-out
               ${activeTab === tab.id 
-                ? 'bg-gray-900 text-white shadow-sm' 
-                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                ? 'bg-primary-600 text-white shadow-sm' 
+                : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
               }
             `}
           >
@@ -35,7 +35,7 @@ const Dashboard = () => {
         ))}
       </nav>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm border border-neutral-200 overflow-hidden">
         {activeTab === 'channels' && <ChannelsPage />}
         {activeTab === 'campaigns' && <ProductList />}
         {activeTab === 'personas' && <PersonaManager />}

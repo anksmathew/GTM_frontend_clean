@@ -63,6 +63,7 @@ interface ChannelDetailModalProps {
   channel: ChannelWithHistory;
   onClose: () => void;
   onEdit: (channel: ChannelWithHistory) => void;
+  isViewOnly?: boolean;
 }
 
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -81,7 +82,7 @@ function ensure12(arr: number[] | undefined, fallback: number = 0): number[] {
   return [...arr, ...Array(12 - arr.length).fill(fallback)];
 }
 
-const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initialChannel, onClose, onEdit }) => {
+const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initialChannel, onClose, onEdit, isViewOnly = false }) => {
   const [activeTab, setActiveTab] = useState('edit');
   const [channel, setChannel] = useState<ChannelWithHistory>(initialChannel);
   const [showEditGraph, setShowEditGraph] = useState(false);
@@ -666,83 +667,67 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
                     <div className="flex gap-2 mb-4">
                       <button
                         className={`px-3 py-1 rounded font-semibold border ${addMode === 'select' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'}`}
-                        onClick={() => setAddMode('select')}
+                        onClick={() => { setAddMode('select'); setShowAddCampaignModal(true); }}
                       >
                         Select Existing
                       </button>
                       <button
                         className={`px-3 py-1 rounded font-semibold border ${addMode === 'create' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'}`}
-                        onClick={() => setAddMode('create')}
+                        onClick={() => { setAddMode('create'); setShowAddCampaignModal(true); }}
                       >
                         Create New
                       </button>
                     </div>
-                    <form onSubmit={handleAddCampaign} className="space-y-4">
-                      {addMode === 'select' ? (
-                        <div>
-                          <label className="block text-sm font-medium mb-1">Select Campaign</label>
-                          <select
-                            value={newCampaign.id || ''}
-                            onChange={e => {
-                              const selected = allCampaigns.find(c => c.id === Number(e.target.value));
-                              setNewCampaign(selected ? { ...selected } : { name: '', status: 'Planned' });
-                            }}
-                            className="w-full border rounded px-3 py-2"
-                            required
+                    {addMode === 'select' && (
+                      <div className="flex gap-2 mb-4">
+                        {allCampaigns.map(campaign => (
+                          <button
+                            key={campaign.id}
+                            className="bg-gray-100 text-gray-700 px-3 py-1 rounded font-semibold hover:bg-blue-600 hover:text-white"
+                            onClick={() => { setNewCampaign({ id: campaign.id, name: campaign.name, status: campaign.status }); setShowAddCampaignModal(false); }}
                           >
-                            <option value="">-- Select a campaign --</option>
-                            {allCampaigns
-                              .filter(c => c.id != null && !campaigns.some(ac => ac.id === c.id))
-                              .map(c => (
-                                <option key={c.id} value={c.id}>{c.name}</option>
-                              ))}
+                            {campaign.name}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {addMode === 'create' && (
+                      <form onSubmit={handleAddCampaign}>
+                        <div className="flex flex-col gap-2">
+                          <input
+                            type="text"
+                            value={newCampaign.name}
+                            onChange={e => setNewCampaign({ ...newCampaign, name: e.target.value })}
+                            placeholder="Campaign Name"
+                            className="border rounded px-2 py-1"
+                          />
+                          <select
+                            value={newCampaign.status}
+                            onChange={e => setNewCampaign({ ...newCampaign, status: e.target.value })}
+                            className="border rounded px-2 py-1"
+                          >
+                            <option value="Planned">Planned</option>
+                            <option value="Active">Active</option>
+                            <option value="Paused">Paused</option>
                           </select>
                         </div>
-                      ) : (
-                        <>
-                          <div>
-                            <label className="block text-sm font-medium mb-1">Campaign Name</label>
-                            <input
-                              type="text"
-                              value={newCampaign.name}
-                              onChange={e => setNewCampaign({ ...newCampaign, name: e.target.value })}
-                              className="w-full border rounded px-3 py-2"
-                              required
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-1">Status</label>
-                            <select
-                              value={newCampaign.status}
-                              onChange={e => setNewCampaign({ ...newCampaign, status: e.target.value })}
-                              className="w-full border rounded px-3 py-2"
-                              required
-                            >
-                              <option value="Planned">Planned</option>
-                              <option value="In Progress">In Progress</option>
-                              <option value="Launched">Launched</option>
-                              <option value="Delayed">Delayed</option>
-                            </select>
-                          </div>
-                        </>
-                      )}
-                      <div className="flex justify-end gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setShowAddCampaignModal(false)}
-                          className="bg-gray-400 text-white px-4 py-2 rounded font-semibold hover:bg-gray-500"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="submit"
-                          className="bg-blue-600 text-white px-4 py-2 rounded font-semibold hover:bg-blue-700"
-                          disabled={addingCampaign}
-                        >
-                          {addingCampaign ? 'Adding...' : 'Add'}
-                        </button>
-                      </div>
-                    </form>
+                        <div className="flex justify-end gap-2 mt-4">
+                          <button
+                            type="button"
+                            onClick={() => setShowAddCampaignModal(false)}
+                            className="bg-gray-400 text-white px-4 py-2 rounded font-semibold hover:bg-gray-500"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            className="bg-blue-600 text-white px-4 py-2 rounded font-semibold hover:bg-blue-700"
+                          >
+                            Add Campaign
+                          </button>
+                        </div>
+                      </form>
+                    )}
                   </div>
                 </div>
               )}
@@ -752,241 +737,58 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
           {activeTab === 'personas' && (
             <div>
               <h3 className="text-lg font-semibold mb-4">Personas</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {personas.map(persona => {
-                  const avatarSrc = persona.avatar && persona.avatar.trim() !== '' ? persona.avatar : getDefaultAvatar(persona.gender);
-                  return (
-                    <div key={persona.id} className="bg-gray-50 p-4 rounded-lg flex items-center gap-4">
-                      <img src={avatarSrc} alt={persona.name} className="w-12 h-12 rounded-full bg-gray-200 object-cover" />
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="space-y-2">
+                  {personas.map(persona => (
+                    <div key={persona.id} className="bg-white p-3 rounded shadow flex justify-between items-center">
                       <div>
-                        <div className="font-bold">{persona.name}</div>
-                        <div className="text-xs text-gray-500">{persona.title}</div>
+                        <div className="font-medium text-lg">{persona.name}</div>
+                        <div className="text-sm text-gray-500">Title: {persona.title}</div>
+                        <div className="text-sm text-gray-500">Gender: {persona.gender}</div>
                       </div>
+                      <button
+                        className="text-blue-600 hover:text-blue-800 font-semibold"
+                        onClick={() => router.push(`/personas/${persona.id}?edit=1`)}
+                      >
+                        Edit
+                      </button>
                     </div>
-                  );
-                })}
+                  ))}
+                </div>
               </div>
             </div>
           )}
 
           {activeTab === 'recommendations' && (
             <div>
-              <h3 className="text-lg font-semibold mb-4">Optimization Recommendations</h3>
-              <div className="flex gap-4 mb-4">
-                <button
-                  className="bg-blue-600 text-white px-4 py-2 rounded font-semibold hover:bg-blue-700"
-                  onClick={fetchClaudeRecommendations}
-                  disabled={loadingClaude}
-                >
-                  {loadingClaude ? 'Loading...' : 'Get AI Recommendations'}
-                </button>
-                <input
-                  type="text"
-                  value={manualRecommendationTitle}
-                  onChange={e => setManualRecommendationTitle(e.target.value)}
-                  placeholder="Recommendation Title"
-                  className="border rounded px-3 py-2 w-48"
-                />
-                <input
-                  type="text"
-                  value={manualRecommendationDesc}
-                  onChange={e => setManualRecommendationDesc(e.target.value)}
-                  placeholder="Recommendation Description"
-                  className="border rounded px-3 py-2 w-64"
-                />
-                <button
-                  className="bg-green-600 text-white px-4 py-2 rounded font-semibold hover:bg-green-700"
-                  onClick={() => {
-                    if (manualRecommendationTitle.trim() && manualRecommendationDesc.trim()) {
-                      setRecommendations([
-                        ...recommendations,
-                        { title: manualRecommendationTitle, description: manualRecommendationDesc }
-                      ]);
-                      setManualRecommendationTitle('');
-                      setManualRecommendationDesc('');
-                    }
-                  }}
-                >
-                  Add
-                </button>
-              </div>
-              <div className="space-y-4">
-                {recommendations.map((rec, idx) => (
-                  <div key={idx} className="bg-gray-50 p-4 rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <span className="text-yellow-500 text-xl">💡</span>
+              <h3 className="text-lg font-semibold mb-4">Recommendations</h3>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="space-y-2">
+                  {recommendations.map((recommendation, idx) => (
+                    <div key={idx} className="bg-white p-3 rounded shadow flex justify-between items-center">
                       <div>
-                        <h4 className="font-medium">{rec.title}</h4>
-                        <p className="text-sm text-gray-600">{rec.description}</p>
+                        <div className="font-medium text-lg">{recommendation.title}</div>
+                        <div className="text-sm text-gray-500">{recommendation.description}</div>
                       </div>
+                      <button
+                        className="text-blue-600 hover:text-blue-800 font-semibold"
+                        onClick={() => {
+                          setManualRecommendationTitle(recommendation.title);
+                          setManualRecommendationDesc(recommendation.description);
+                        }}
+                      >
+                        Edit
+                      </button>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           )}
-
-          {activeTab === 'edit' && (
-            <>
-              <EditTabForm form={form} setForm={setForm} />
-              <div className="flex justify-end mt-4">
-                <button
-                  className="bg-blue-600 text-white px-4 py-2 rounded font-semibold hover:bg-blue-700"
-                  onClick={() => handleSaveAll()}
-                >
-                  Save Changes
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-
-        <div className="flex justify-end gap-2 mt-6">
-          <button
-            onClick={onClose}
-            className="bg-gray-400 text-white px-4 py-2 rounded font-semibold hover:bg-gray-500"
-          >
-            Close
-          </button>
         </div>
       </div>
     </div>
   );
 };
 
-const EditTabForm: React.FC<{
-  form: {
-    name: string;
-    type: string;
-    budget: number;
-    spend: number;
-    ctr: number;
-    conversion_rate: number;
-    roi: number;
-    status: string;
-    target_ctr: number;
-    target_conversion: number;
-    target_roi: number;
-    api_key: string;
-    tracking_code: string;
-    assigned_campaigns: number[];
-    assigned_personas: number[];
-  };
-  setForm: React.Dispatch<React.SetStateAction<{
-    name: string;
-    type: string;
-    budget: number;
-    spend: number;
-    ctr: number;
-    conversion_rate: number;
-    roi: number;
-    status: string;
-    target_ctr: number;
-    target_conversion: number;
-    target_roi: number;
-    api_key: string;
-    tracking_code: string;
-    assigned_campaigns: number[];
-    assigned_personas: number[];
-  }>>;
-}> = ({ form, setForm }) => {
-  const [nameError, setNameError] = React.useState('');
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    setForm((prev: typeof form) => ({
-      ...prev,
-      [name]: type === 'number' ? Number(value) : value,
-    }));
-    if (name === 'name' && value.trim() === '') {
-      setNameError('Channel Name is required');
-    } else if (name === 'name') {
-      setNameError('');
-    }
-  };
-  return (
-    <form className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-medium mb-1">Channel Name <span className="text-red-500">*</span></label>
-          <input
-            type="text"
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            className="w-full border rounded px-3 py-2"
-            required
-          />
-          {nameError && <div className="text-red-500 text-xs mt-1">{nameError}</div>}
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Channel Type</label>
-          <select
-            name="type"
-            value={form.type}
-            onChange={handleChange}
-            className="w-full border rounded px-3 py-2"
-            required
-          >
-            {['Email','Social','Paid Ads','Content','Events','SEO','Partnerships','Direct Sales','PR'].map(type => (
-              <option key={type} value={type}>{type}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-      <div className="bg-gray-50 p-4 rounded-lg">
-        <h3 className="text-lg font-semibold mb-4">Budget & Spending</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium mb-1">Total Budget</label>
-            <input
-              type="number"
-              name="budget"
-              value={form.budget}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Current Spend</label>
-            <input
-              type="number"
-              name="spend"
-              value={form.spend}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-              required
-            />
-          </div>
-        </div>
-      </div>
-      <div className="bg-gray-50 p-4 rounded-lg">
-        <h3 className="text-lg font-semibold mb-4">Integration Settings</h3>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">API Key</label>
-            <input
-              type="text"
-              name="api_key"
-              value={form.api_key}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Tracking Code</label>
-            <textarea
-              name="tracking_code"
-              value={form.tracking_code}
-              onChange={handleChange}
-              rows={3}
-              className="w-full border rounded px-3 py-2"
-            />
-          </div>
-        </div>
-      </div>
-    </form>
-  );
-};
-
-export default ChannelDetailModal; 
+export default ChannelDetailModal;
