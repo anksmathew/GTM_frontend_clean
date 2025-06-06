@@ -226,23 +226,26 @@ const ProductList = forwardRef((props, ref) => {
   }));
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold text-neutral-900">Campaigns</h2>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="btn btn-secondary"
-          >
-            Filters
-          </button>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="btn btn-primary"
-          >
-            Add Campaign
-          </button>
+    <div className="p-0 bg-white">
+      {/* Header Bar */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <input
+            type="text"
+            placeholder="Search..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="rounded-lg border border-[#E5E7EB] bg-white text-[#181C2A] px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 w-full md:w-64 shadow-sm"
+          />
+          <button className="px-3 py-2 rounded-lg border border-[#E5E7EB] bg-white text-[#181C2A] text-sm font-medium hover:bg-[#F3F4F6] shadow-sm">Sort</button>
+          <button onClick={() => setShowFilters(!showFilters)} className="px-3 py-2 rounded-lg border border-[#E5E7EB] bg-white text-[#181C2A] text-sm font-medium hover:bg-[#F3F4F6] shadow-sm">Filter</button>
         </div>
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="px-5 py-2 rounded-lg bg-green-500 text-white font-semibold shadow hover:bg-green-600 transition"
+        >
+          + Add Campaign
+        </button>
       </div>
 
       {/* Status Tabs */}
@@ -252,10 +255,11 @@ const ProductList = forwardRef((props, ref) => {
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`
-              px-4 py-2 rounded-md text-sm font-medium
+              px-4 py-2 rounded-lg text-sm font-medium
+              transition-all duration-150
               ${activeTab === tab
-                ? 'bg-[#007acc] text-white'
-                : 'bg-[#1a1a1a] text-[#e5e5e5] hover:bg-[#2a2a2a] border border-[#374151]'
+                ? 'bg-green-100 text-green-700 border-b-4 border-green-500 shadow'
+                : 'bg-white text-[#181C2A] hover:bg-green-50 border border-[#E5E7EB]'
               }
             `}
           >
@@ -264,42 +268,42 @@ const ProductList = forwardRef((props, ref) => {
         ))}
       </div>
 
-      {/* Product List */}
-      <div className="bg-[#1a1a1a] rounded-lg border border-[#374151] overflow-hidden">
-        <table className="min-w-full divide-y divide-[#374151]">
-          <thead className="bg-[#2a2a2a]">
+      {/* Product List Table */}
+      <div className="bg-white rounded-2xl shadow-lg border border-[#E5E7EB] overflow-hidden">
+        <table className="min-w-full divide-y divide-[#E5E7EB]">
+          <thead className="bg-[#F3F4F6]">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[#9ca3af] uppercase tracking-wider">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[#9ca3af] uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[#9ca3af] uppercase tracking-wider">Launch Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[#9ca3af] uppercase tracking-wider">Budget</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[#9ca3af] uppercase tracking-wider">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-bold text-[#7C8DB5] uppercase tracking-wider">Name</th>
+              <th className="px-6 py-3 text-left text-xs font-bold text-[#7C8DB5] uppercase tracking-wider">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-bold text-[#7C8DB5] uppercase tracking-wider">Launch Date</th>
+              <th className="px-6 py-3 text-left text-xs font-bold text-[#7C8DB5] uppercase tracking-wider">Budget</th>
+              <th className="px-6 py-3 text-left text-xs font-bold text-[#7C8DB5] uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#374151]">
-            {filteredProducts.map((product) => (
-              <tr key={product.id} className="hover:bg-[#2a2a2a] transition-colors duration-150">
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-white">{product.name}</td>
+          <tbody>
+            {filteredProducts.map((product, idx) => (
+              <tr key={product.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-[#F8FAFC]'}>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#181C2A]">{product.name}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    product.status === 'Planned' ? 'bg-[#007acc]/20 text-[#007acc]' :
-                    product.status === 'In Progress' ? 'bg-[#f59e0b]/20 text-[#f59e0b]' :
-                    product.status === 'Launched' ? 'bg-[#22c55e]/20 text-[#22c55e]' :
-                    'bg-[#ef4444]/20 text-[#ef4444]'
-                  }`}>
+                  <span className={`px-3 py-1 text-xs font-semibold rounded-full shadow-sm
+                    ${product.status === 'Planned' ? 'bg-blue-100 text-blue-700' :
+                      product.status === 'In Progress' ? 'bg-yellow-100 text-yellow-700' :
+                      product.status === 'Launched' ? 'bg-green-100 text-green-700' :
+                      'bg-red-100 text-red-700'}
+                  `}>
                     {product.status}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-[#e5e5e5]">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-[#4B5563]">
                   {product.launch_date ? new Date(product.launch_date).toLocaleDateString() : '-'}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-[#e5e5e5]">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-[#4B5563]">
                   ${product.budget?.toLocaleString() || '-'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                   <button
                     onClick={() => handleViewDetails(product)}
-                    className="text-[#007acc] hover:text-[#0062a3] font-medium"
+                    className="text-green-600 hover:text-green-800 font-semibold"
                   >
                     View Details →
                   </button>

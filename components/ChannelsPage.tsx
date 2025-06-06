@@ -137,49 +137,49 @@ const ChannelsPage = () => {
         </button>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 bg-white">
         {channels.map((channel) => (
           <div
             key={channel.id}
-            className="bg-[#1a1a1a] rounded-lg border border-[#374151] p-6 hover:bg-[#2a2a2a] transition-colors duration-150 cursor-pointer"
+            className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow hover:bg-[#F3F4F6] transition-colors duration-150 cursor-pointer"
           >
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center space-x-3">
-                <span className="text-2xl">{typeIcons[channel.type] || '📊'}</span>
+                <span className="text-2xl text-green-500">{typeIcons[channel.type] || '📊'}</span>
                 <div>
-                  <h3 className="font-medium text-white">{channel.name}</h3>
-                  <p className="text-sm text-[#9ca3af]">{channel.type}</p>
+                  <h3 className="font-semibold text-[#181C2A]">{channel.name}</h3>
+                  <p className="text-sm text-[#7C8DB5]">{channel.type}</p>
                 </div>
               </div>
-              <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                channel.status.toLowerCase() === 'active' ? 'bg-[#22c55e]/20 text-[#22c55e]' :
-                channel.status.toLowerCase() === 'paused' ? 'bg-[#f59e0b]/20 text-[#f59e0b]' :
-                channel.status.toLowerCase() === 'inactive' ? 'bg-[#64748b]/20 text-[#64748b]' :
-                'bg-[#ef4444]/20 text-[#ef4444]'
-              }`}>
+              <span className={`px-3 py-1 text-xs font-semibold rounded-full shadow-sm
+                ${channel.status.toLowerCase() === 'active' ? 'bg-green-100 text-green-700' :
+                  channel.status.toLowerCase() === 'paused' ? 'bg-yellow-100 text-yellow-700' :
+                  channel.status.toLowerCase() === 'inactive' ? 'bg-gray-100 text-gray-700' :
+                  'bg-red-100 text-red-700'}
+              `}>
                 {channel.status.charAt(0).toUpperCase() + channel.status.slice(1)}
               </span>
             </div>
 
             <div className="space-y-3">
               <div className="flex items-center text-sm">
-                <span className="w-24 text-[#9ca3af]">Spend:</span>
-                <span className="text-[#e5e5e5]">${channel.spend?.toLocaleString()}</span>
+                <span className="w-24 text-[#7C8DB5]">Spend:</span>
+                <span className="text-[#181C2A] font-medium">${channel.spend?.toLocaleString()}</span>
               </div>
               <div className="flex items-center text-sm">
-                <span className="w-24 text-[#9ca3af]">Budget:</span>
-                <span className="text-[#e5e5e5]">${channel.budget?.toLocaleString()}</span>
+                <span className="w-24 text-[#7C8DB5]">Budget:</span>
+                <span className="text-[#181C2A] font-medium">${channel.budget?.toLocaleString()}</span>
               </div>
               <div className="flex items-center text-sm">
-                <span className="w-24 text-[#9ca3af]">Progress:</span>
-                <span className="text-[#e5e5e5]">{Math.round((channel.spend / channel.budget) * 100)}%</span>
+                <span className="w-24 text-[#7C8DB5]">Progress:</span>
+                <span className="text-[#181C2A] font-medium">{Math.round((channel.spend / channel.budget) * 100)}%</span>
               </div>
             </div>
 
             <div className="mt-4 flex justify-end">
               <button
                 onClick={() => handleViewDetails(channel)}
-                className="text-[#007acc] hover:text-[#0062a3] font-medium text-sm"
+                className="text-green-600 hover:text-green-800 font-semibold text-sm"
               >
                 View Details →
               </button>

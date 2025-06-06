@@ -217,7 +217,7 @@ const PersonaManager = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-white">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-semibold text-white">Target Personas</h2>
         <button className="btn btn-primary" onClick={() => openModal()}>
@@ -229,28 +229,28 @@ const PersonaManager = () => {
         {filteredPersonas.map((persona) => (
           <div
             key={persona.id}
-            className="bg-[#1a1a1a] rounded-lg border border-[#374151] p-6 hover:bg-[#2a2a2a] transition-colors duration-150"
+            className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow hover:bg-[#F3F4F6] transition-colors duration-150"
           >
             <div className="flex items-start space-x-4 mb-4">
-              <div className="text-3xl">{getAvatarEmoji(persona.gender)}</div>
+              <div className="text-3xl text-green-500">{getAvatarEmoji(persona.gender)}</div>
               <div>
-                <h3 className="font-medium text-white">{persona.name}</h3>
-                <p className="text-sm text-[#9ca3af]">{persona.title}</p>
+                <h3 className="font-semibold text-[#181C2A]">{persona.name}</h3>
+                <p className="text-sm text-[#7C8DB5]">{persona.title}</p>
               </div>
             </div>
 
             <div className="space-y-3">
               <div className="flex items-center text-sm">
-                <span className="w-24 text-[#9ca3af]">Age Range:</span>
-                <span className="text-[#e5e5e5]">{persona.age_range}</span>
+                <span className="w-24 text-[#7C8DB5]">Age Range:</span>
+                <span className="text-[#181C2A] font-medium">{persona.age_range}</span>
               </div>
               <div className="flex items-center text-sm">
-                <span className="w-24 text-[#9ca3af]">Gender:</span>
-                <span className="text-[#e5e5e5]">{persona.gender}</span>
+                <span className="w-24 text-[#7C8DB5]">Gender:</span>
+                <span className="text-[#181C2A] font-medium">{persona.gender}</span>
               </div>
               <div className="flex items-center text-sm">
-                <span className="w-24 text-[#9ca3af]">Location:</span>
-                <span className="text-[#e5e5e5]">{persona.location}</span>
+                <span className="w-24 text-[#7C8DB5]">Location:</span>
+                <span className="text-[#181C2A] font-medium">{persona.location}</span>
               </div>
             </div>
 
@@ -301,10 +301,10 @@ const PersonaManager = () => {
                 Edit
               </button>
               <button
-                className="btn btn-primary"
+                className="text-green-600 hover:text-green-800 font-semibold text-sm"
                 onClick={() => handleViewDetails(persona)}
               >
-                View Details
+                View Details →
               </button>
             </div>
           </div>
