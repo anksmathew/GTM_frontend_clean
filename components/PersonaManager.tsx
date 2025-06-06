@@ -219,8 +219,8 @@ const PersonaManager = () => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold text-[var(--color-neutral-900)]">Target Personas</h2>
-        <button className="px-4 py-2 rounded-lg font-medium bg-blue-500 text-white hover:bg-blue-600" onClick={() => openModal()}>
+        <h2 className="text-2xl font-semibold text-white">Target Personas</h2>
+        <button className="btn btn-primary" onClick={() => openModal()}>
           Add Persona
         </button>
       </div>
@@ -229,38 +229,38 @@ const PersonaManager = () => {
         {filteredPersonas.map((persona) => (
           <div
             key={persona.id}
-            className="card card-hover p-6"
+            className="bg-[#1a1a1a] rounded-lg border border-[#374151] p-6 hover:bg-[#2a2a2a] transition-colors duration-150"
           >
             <div className="flex items-start space-x-4 mb-4">
               <div className="text-3xl">{getAvatarEmoji(persona.gender)}</div>
               <div>
-                <h3 className="font-medium text-[var(--color-neutral-900)]">{persona.name}</h3>
-                <p className="text-sm text-[var(--color-neutral-500)]">{persona.title}</p>
+                <h3 className="font-medium text-white">{persona.name}</h3>
+                <p className="text-sm text-[#9ca3af]">{persona.title}</p>
               </div>
             </div>
 
             <div className="space-y-3">
               <div className="flex items-center text-sm">
-                <span className="w-24 text-[var(--color-neutral-500)]">Age Range:</span>
-                <span className="text-[var(--color-neutral-900)]">{persona.age_range}</span>
+                <span className="w-24 text-[#9ca3af]">Age Range:</span>
+                <span className="text-[#e5e5e5]">{persona.age_range}</span>
               </div>
               <div className="flex items-center text-sm">
-                <span className="w-24 text-[var(--color-neutral-500)]">Gender:</span>
-                <span className="text-[var(--color-neutral-900)]">{persona.gender}</span>
+                <span className="w-24 text-[#9ca3af]">Gender:</span>
+                <span className="text-[#e5e5e5]">{persona.gender}</span>
               </div>
               <div className="flex items-center text-sm">
-                <span className="w-24 text-[var(--color-neutral-500)]">Location:</span>
-                <span className="text-[var(--color-neutral-900)]">{persona.location}</span>
+                <span className="w-24 text-[#9ca3af]">Location:</span>
+                <span className="text-[#e5e5e5]">{persona.location}</span>
               </div>
             </div>
 
             <div className="mt-4">
-              <h4 className="text-sm font-medium text-[var(--color-neutral-700)] mb-2">Interests</h4>
+              <h4 className="text-sm font-medium text-[#9ca3af] mb-2">Interests</h4>
               <div className="flex flex-wrap gap-2">
                 {persona.interests.split(',').map((interest, index) => (
                   <span
                     key={index}
-                    className="px-2 py-1 bg-[var(--color-primary-50)] text-[var(--color-primary-700)] rounded-full text-xs"
+                    className="px-2 py-1 bg-[#007acc]/20 text-[#007acc] rounded-full text-xs"
                   >
                     {interest}
                   </span>
@@ -270,38 +270,38 @@ const PersonaManager = () => {
 
             {/* Campaigns Section */}
             <div className="mt-4">
-              <h4 className="text-sm font-medium text-[var(--color-neutral-700)] mb-2">Targeted Campaigns</h4>
+              <h4 className="text-sm font-medium text-[#9ca3af] mb-2">Targeted Campaigns</h4>
               <div className="space-y-2">
                 {typeof persona.id === 'number' && personaCampaigns[persona.id]?.length > 0 ? (
                   personaCampaigns[persona.id].map((campaign: any) => (
                     <div
                       key={campaign.id}
-                      className="flex items-center justify-between p-2 bg-[var(--color-neutral-50)] rounded-lg hover:bg-[var(--color-neutral-100)] transition-colors duration-150"
+                      className="flex items-center justify-between p-2 bg-[#2a2a2a] rounded-md hover:bg-[#374151] transition-colors duration-150"
                     >
-                      <span className="text-sm text-[var(--color-neutral-900)]">{campaign.name}</span>
+                      <span className="text-sm text-[#e5e5e5]">{campaign.name}</span>
                       <button
                         onClick={() => {/* Navigate to campaign */}}
-                        className="text-xs text-[var(--color-primary-600)] hover:text-[var(--color-primary-700)] font-medium"
+                        className="text-xs text-[#007acc] hover:text-[#0062a3] font-medium"
                       >
                         View →
                       </button>
                     </div>
                   ))
                 ) : (
-                  <p className="text-sm text-[var(--color-neutral-500)] italic">No campaigns targeting this persona</p>
+                  <p className="text-sm text-[#9ca3af] italic">No campaigns targeting this persona</p>
                 )}
               </div>
             </div>
 
             <div className="flex justify-end space-x-2 mt-6">
               <button
-                className="px-4 py-2 rounded-lg font-medium bg-gray-100 text-gray-700 hover:bg-gray-200"
+                className="btn btn-secondary"
                 onClick={() => openModal(persona)}
               >
                 Edit
               </button>
               <button
-                className="px-4 py-2 rounded-lg font-medium bg-blue-500 text-white hover:bg-blue-600"
+                className="btn btn-primary"
                 onClick={() => handleViewDetails(persona)}
               >
                 View Details
@@ -313,15 +313,15 @@ const PersonaManager = () => {
 
       {/* Modal for Persona Builder Wizard */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-          <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-[#1a1a1a] rounded-lg border border-[#374151] p-8 w-full max-w-2xl relative">
             <button
               onClick={closeModal}
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700"
+              className="absolute top-2 right-2 text-[#9ca3af] hover:text-white"
             >
               ×
             </button>
-            <h2 className="text-xl font-bold mb-4">{editPersona ? "Edit Persona" : "New Persona"}</h2>
+            <h2 className="text-xl font-bold mb-4 text-white">{editPersona ? "Edit Persona" : "New Persona"}</h2>
             <form onSubmit={handleSubmit} className="space-y-3 max-h-[70vh] overflow-y-auto pr-2">
               <div className="flex gap-4">
                 <div className="flex-1">

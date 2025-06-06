@@ -5,32 +5,54 @@
 
 @layer base {
   body {
-    @apply bg-neutral-50 text-neutral-900;
+    @apply bg-[#0a0a0a] text-white;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, system-ui, sans-serif;
   }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold;
+  }
+
+  h1 { @apply text-2xl; }
+  h2 { @apply text-xl; }
+  h3 { @apply text-lg; }
+  h4 { @apply text-base; }
 }
 
 @layer components {
   .btn {
-    @apply px-4 py-2 rounded-lg font-medium transition-colors duration-200 ease-in-out;
+    @apply px-4 py-2 rounded-md font-medium transition-all duration-150 ease-in-out;
   }
 
   .btn-primary {
-    @apply bg-primary-500 text-white hover:bg-primary-600 focus:ring-2 focus:ring-primary-400 focus:ring-offset-2;
+    @apply bg-[#007acc] text-white hover:bg-[#0062a3] focus:ring-2 focus:ring-[#007acc] focus:ring-offset-2 focus:ring-offset-[#0a0a0a];
   }
 
   .btn-secondary {
-    @apply bg-neutral-100 text-neutral-700 hover:bg-neutral-200 focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2;
+    @apply bg-transparent text-[#e5e5e5] border border-[#374151] hover:bg-[#2a2a2a] focus:ring-2 focus:ring-[#374151] focus:ring-offset-2 focus:ring-offset-[#0a0a0a];
   }
 
-  .btn-success {
-    @apply bg-success-500 text-white hover:bg-success-600 focus:ring-2 focus:ring-success-400 focus:ring-offset-2;
+  .card {
+    @apply bg-[#1a1a1a] border border-[#374151] rounded-lg;
   }
 
-  .btn-warning {
-    @apply bg-warning-500 text-white hover:bg-warning-600 focus:ring-2 focus:ring-warning-400 focus:ring-offset-2;
+  .card-hover {
+    @apply hover:bg-[#2a2a2a] transition-colors duration-150;
   }
 
-  .btn-error {
-    @apply bg-error-500 text-white hover:bg-error-600 focus:ring-2 focus:ring-error-400 focus:ring-offset-2;
+  .input {
+    @apply bg-[#1a1a1a] border border-[#374151] rounded-md px-3 py-2 text-white placeholder-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#007acc] focus:border-transparent;
+  }
+
+  .select {
+    @apply bg-[#1a1a1a] border border-[#374151] rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-[#007acc] focus:border-transparent;
+  }
+
+  .nav-link {
+    @apply text-[#e5e5e5] hover:text-white transition-colors duration-150;
+  }
+
+  .nav-link-active {
+    @apply text-white bg-[#2a2a2a] rounded-md;
   }
 }

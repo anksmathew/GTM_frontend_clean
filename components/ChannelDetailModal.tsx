@@ -205,6 +205,10 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
     assigned_personas: channel.assigned_personas || [],
   });
 
+  // Add state for editing budget
+  const [editingBudget, setEditingBudget] = useState(false);
+  const [budgetInput, setBudgetInput] = useState(form.budget);
+
   useEffect(() => {
     if (activeTab === 'campaigns') {
       axios.get(`${API_URL}/api/campaigns`).then(async res => {
@@ -393,31 +397,37 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
         <div className="space-y-6">
           {activeTab === 'edit' && (
             <div>
-              <h3 className="text-lg font-semibold mb-4">Edit Channel</h3>
+              <h3 className="text-2xl font-bold text-neutral-900 mb-4">Edit Channel</h3>
+              <div className="mb-3">
+                <h4 className="text-xl font-bold text-neutral-900 mb-1">Channel Details</h4>
+                <p className="text-sm text-neutral-700 mb-1">Fill in the details for this marketing channel. Fields marked with * are required.</p>
+              </div>
               <form
                 onSubmit={e => {
                   e.preventDefault();
                   handleSaveAll();
                 }}
-                className="space-y-4"
+                className="space-y-3"
               >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div className="flex flex-col justify-center">
-                    <label className="block text-sm font-medium mb-1">Name</label>
+                    <label className="block text-base font-semibold text-neutral-900 mb-0.5">Name *</label>
+                    <span className="text-xs text-neutral-700 mb-1">Enter a unique name for this channel (e.g., 'Facebook Ads', 'Email Newsletter').</span>
                     <input
                       type="text"
                       value={form.name}
                       onChange={e => setForm({ ...form, name: e.target.value })}
-                      className="w-full border rounded px-2 py-2 h-11"
+                      className="w-full border rounded px-2 py-2 h-11 text-neutral-900"
                       required
                     />
                   </div>
                   <div className="flex flex-col justify-center">
-                    <label className="block text-sm font-medium mb-1">Type</label>
+                    <label className="block text-base font-semibold text-neutral-900 mb-0.5">Type *</label>
+                    <span className="text-xs text-neutral-700 mb-1">Select the type of marketing channel.</span>
                     <select
                       value={form.type}
                       onChange={e => setForm({ ...form, type: e.target.value })}
-                      className="w-full border rounded px-2 py-2 h-11"
+                      className="w-full border rounded px-2 py-2 h-11 text-neutral-900"
                       required
                     >
                       <option value="Email">Email</option>
@@ -432,24 +442,26 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
                     </select>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Budget</label>
+                    <label className="block text-base font-semibold text-neutral-900 mb-0.5">Budget ($) *</label>
+                    <span className="text-xs text-neutral-700 mb-1">Set the total budget allocated for this channel.</span>
                     <input
                       type="number"
                       value={form.budget}
                       onChange={e => setForm({ ...form, budget: Number(e.target.value) })}
-                      className="w-full border rounded px-2 py-1"
+                      className="w-full border rounded px-2 py-2 h-11 text-neutral-900"
                       min="0"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Status</label>
+                    <label className="block text-base font-semibold text-neutral-900 mb-0.5">Status *</label>
+                    <span className="text-xs text-neutral-700 mb-1">Set the current status of this channel.</span>
                     <select
                       value={form.status}
                       onChange={e => setForm({ ...form, status: e.target.value })}
-                      className="w-full border rounded px-2 py-1"
+                      className="w-full border rounded px-2 py-2 h-11 text-neutral-900"
                       required
                     >
                       <option value="Active">Active</option>
@@ -458,7 +470,7 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
                     </select>
                   </div>
                 </div>
-                <div className="flex justify-end gap-2 mt-4">
+                <div className="flex justify-end gap-2 mt-2">
                   <button
                     type="button"
                     onClick={() => setForm({
@@ -495,43 +507,51 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
 
           {activeTab === 'performance' && (
             <div>
-              <h3 className="text-lg font-semibold mb-4">Performance Metrics</h3>
+              <h3 className="text-2xl font-bold text-neutral-900 mb-4">Performance Metrics</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-gray-50 p-4 rounded-lg relative">
-                  <h4 className="text-sm font-medium mb-2 flex items-center justify-between">
+                  <span className="inline-block text-black font-semibold px-2 py-1 rounded mb-2">
                     CTR & Conversion Trends
-                    <button
-                      className="ml-2 text-xs text-blue-600 underline hover:text-blue-800"
-                      onClick={() => { setEditCTR([...historicalCTR]); setEditConversionRate([...historicalConversionRate]); setShowEditGraph(true); }}
-                    >
-                      Edit Graph
-                    </button>
-                  </h4>
+                  </span>
+                  <button
+                    className="ml-2 text-xs text-blue-600 underline hover:text-blue-800"
+                    onClick={() => { setEditCTR([...historicalCTR]); setEditConversionRate([...historicalConversionRate]); setShowEditGraph(true); }}
+                  >
+                    Edit Graph
+                  </button>
                   <Line data={performanceData} options={{
                     scales: {
                       y: {
                         beginAtZero: true,
-                        title: { display: true, text: '%' },
+                        title: { display: true, text: '%', color: '#1a202c', font: { weight: 'bold' } },
                         suggestedMax: yAxisMax,
                         max: yAxisMax,
+                        ticks: { color: '#1a202c', font: { weight: 'bold' } },
                       }
+                    },
+                    plugins: {
+                      legend: { labels: { color: '#1a202c', font: { weight: 'bold' } } },
                     }
                   }} />
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="text-sm font-medium mb-2">Key Metrics</h4>
+                  <h4 className="text-sm font-medium text-neutral-900 mb-2">Key Metrics</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-white p-3 rounded shadow">
-                      <div className="text-sm text-gray-500">Average CTR</div>
-                      <div className="text-xl font-bold">{avgCTR !== null ? `${avgCTR.toFixed(1)}%` : '-'}</div>
+                      <div className="text-sm text-neutral-700 font-medium">Average CTR</div>
+                      <div className="text-xl font-bold text-neutral-900">
+                        {avgCTR !== null && !isNaN(avgCTR) ? `${avgCTR.toFixed(1)}%` : 'N/A'}
+                      </div>
                     </div>
                     <div className="bg-white p-3 rounded shadow">
-                      <div className="text-sm text-gray-500">Average CR</div>
-                      <div className="text-xl font-bold">{avgCR !== null ? `${avgCR.toFixed(1)}%` : '-'}</div>
+                      <div className="text-sm text-neutral-700 font-medium">Average CR</div>
+                      <div className="text-xl font-bold text-neutral-900">
+                        {avgCR !== null && !isNaN(avgCR) ? `${avgCR.toFixed(1)}%` : 'N/A'}
+                      </div>
                     </div>
                     <div className="bg-white p-3 rounded shadow flex items-center gap-2">
                       <div>
-                        <div className="text-sm text-gray-500">ROI</div>
+                        <div className="text-sm text-neutral-700 font-medium">ROI</div>
                         {editingROI ? (
                           <form onSubmit={e => { e.preventDefault(); handleRoiSave(); }} className="flex items-center gap-1">
                             <input
@@ -539,25 +559,27 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
                               step="0.01"
                               value={roiInput}
                               onChange={e => setRoiInput(Number(e.target.value))}
-                              className="border rounded px-2 py-1 w-20 mr-1"
+                              className="border rounded px-2 py-1 w-20 mr-1 text-neutral-900"
                               autoFocus
                             />
                             <button type="submit" className="text-blue-600 font-semibold">Save</button>
-                            <button type="button" className="text-gray-400 ml-1" onClick={() => { setEditingROI(false); setRoiInput(channel.roi); }}>Cancel</button>
+                            <button type="button" className="text-neutral-500 ml-1" onClick={() => { setEditingROI(false); setRoiInput(channel.roi); }}>Cancel</button>
                           </form>
                         ) : (
-                          <span className="text-xl font-bold">{channel.roi}x</span>
+                          <span className="text-xl font-bold text-neutral-900">{channel.roi !== undefined && channel.roi !== null && !isNaN(channel.roi) ? `${channel.roi}x` : 'N/A'}</span>
                         )}
                       </div>
                       {!editingROI && (
-                        <button onClick={() => setEditingROI(true)} className="ml-1 text-gray-400 hover:text-blue-600" title="Edit ROI">
+                        <button onClick={() => setEditingROI(true)} className="ml-1 text-neutral-500 hover:text-blue-600" title="Edit ROI">
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2l-6 6m-2 2h6" /></svg>
                         </button>
                       )}
                     </div>
                     <div className="bg-white p-3 rounded shadow">
-                      <div className="text-sm text-gray-500">Spend</div>
-                      <div className="text-xl font-bold">${channel.spend}</div>
+                      <div className="text-sm text-neutral-700 font-medium">Spend</div>
+                      <div className="text-xl font-bold text-neutral-900">
+                        {channel.spend !== undefined && channel.spend !== null && !isNaN(channel.spend) ? `$${channel.spend}` : 'N/A'}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -638,11 +660,16 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
 
           {activeTab === 'budget' && (
             <div>
-              <h3 className="text-lg font-semibold mb-4">Budget Overview</h3>
+              <h3 className="text-2xl font-bold text-neutral-900 mb-4">Budget Overview</h3>
+              <div className="mb-3">
+                <h4 className="text-xl font-bold text-neutral-900 mb-1">Budget Allocation</h4>
+                <p className="text-sm text-neutral-700 mb-1">View and manage your channel's budget allocation and spending timeline.</p>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-gray-50 p-4 rounded-lg flex flex-col items-center justify-center">
-                  <h4 className="text-sm font-medium mb-2">Budget Allocation</h4>
-                  <div className="relative w-full max-w-md h-64 flex items-center justify-center">
+                {/* Budget Allocation Card */}
+                <div className="bg-neutral-50 p-4 rounded-lg">
+                  <h4 className="text-base font-semibold text-neutral-900 mb-2">Budget vs Spend</h4>
+                  <div className="w-full h-64 flex items-center justify-center">
                     <Bar
                       data={{
                         labels: [''],
@@ -666,7 +693,7 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
                       options={{
                         indexAxis: 'y',
                         plugins: {
-                          legend: { display: true, position: 'top' },
+                          legend: { display: true, position: 'top', labels: { color: '#1a202c', font: { weight: 'bold' } } },
                           tooltip: { enabled: true },
                         },
                         responsive: true,
@@ -674,8 +701,9 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
                           x: {
                             beginAtZero: true,
                             suggestedMax: Math.max(channel.budget, totalMonthlySpend) * 1.2,
-                            title: { display: true, text: 'Amount ($)' },
+                            title: { display: true, text: 'Amount ($)', color: '#1a202c', font: { weight: 'bold' } },
                             grid: { display: true },
+                            ticks: { color: '#1a202c', font: { weight: 'bold' } },
                           },
                           y: {
                             grid: { display: false },
@@ -685,94 +713,142 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
                       }}
                     />
                   </div>
-                  <div className="flex flex-col items-center mt-4">
-                    <span className="text-2xl font-bold text-neutral-900">${channel.budget}</span>
-                    <span className="text-lg font-semibold text-neutral-700 mt-1">Budget</span>
+                  <div className="mt-4 grid grid-cols-2 gap-4">
+                    <div className="bg-white p-3 rounded shadow">
+                      <div className="text-sm text-neutral-700 font-medium">Total Budget</div>
+                      <div className="text-xl font-extrabold text-neutral-900 flex items-center gap-2">
+                        {editingBudget ? (
+                          <form onSubmit={e => { e.preventDefault(); setForm(f => ({ ...f, budget: budgetInput })); setEditingBudget(false); }} className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              min="0"
+                              className="border rounded px-2 py-1 w-24 text-neutral-900"
+                              value={budgetInput}
+                              onChange={e => setBudgetInput(Number(e.target.value))}
+                              autoFocus
+                            />
+                            <button type="submit" className="text-blue-600 font-semibold">Save</button>
+                            <button type="button" className="text-neutral-500 ml-1" onClick={() => { setEditingBudget(false); setBudgetInput(form.budget); }}>Cancel</button>
+                          </form>
+                        ) : (
+                          <>
+                            ${form.budget}
+                            <button onClick={() => { setEditingBudget(true); setBudgetInput(form.budget); }} className="ml-1 text-neutral-500 hover:text-blue-600" title="Edit Budget">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2l-6 6m-2 2h6" /></svg>
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <div className="bg-white p-3 rounded shadow">
+                      <div className="text-sm text-neutral-700 font-medium">Total Spent</div>
+                      <div className="text-xl font-extrabold text-neutral-900">${totalMonthlySpend}</div>
+                    </div>
+                    <div className="bg-white p-3 rounded shadow col-span-2">
+                      <div className="text-sm text-neutral-700 font-medium">Status</div>
+                      <div className={`text-lg font-bold ${totalMonthlySpend > channel.budget ? 'text-red-600' : 'text-green-600'}`}> 
+                        {totalMonthlySpend > channel.budget ? (
+                          <span>Over Budget! <span role="img" aria-label="alert">⚠️</span></span>
+                        ) : (
+                          <span>Within Budget</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="bg-gray-50 p-4 rounded-lg relative">
-                  <h4 className="text-sm font-medium mb-2 flex items-center justify-between">
-                    Spending Timeline
+                {/* Spending Timeline Card */}
+                <div className="bg-neutral-50 p-4 rounded-lg">
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="text-base font-semibold text-neutral-900">Monthly Spending</h4>
                     <button
-                      className="ml-2 text-xs text-blue-600 underline hover:text-blue-800"
+                      className="text-xs text-blue-600 underline hover:text-blue-800 font-semibold"
                       onClick={() => { setEditSpend([...monthlySpend]); setShowEditSpend(true); }}
                     >
                       Edit Spend
                     </button>
-                  </h4>
+                  </div>
                   <Bar data={spendingTimelineData} options={{
+                    plugins: {
+                      legend: { labels: { color: '#1a202c', font: { weight: 'bold' } } },
+                    },
                     scales: {
                       y: {
                         beginAtZero: true,
                         suggestedMax: Math.max(...monthlySpend, 2000) * 1.1,
                         max: Math.max(...monthlySpend, 2000) * 1.1,
-                      }
+                        ticks: { color: '#1a202c', font: { weight: 'bold' } },
+                        title: { color: '#1a202c', font: { weight: 'bold' } },
+                      },
+                      x: {
+                        ticks: { color: '#1a202c', font: { weight: 'bold' } },
+                      },
                     }
                   }} />
-                  <div className="mt-4 text-center font-semibold text-gray-700">
-                    Budget Remaining: ${channel.budget - monthlySpend.reduce((sum, v) => sum + v, 0)}
+                  <div className="mt-4 bg-white p-3 rounded shadow">
+                    <div className="text-sm text-neutral-700 font-medium">Budget Remaining</div>
+                    <div className={`text-xl font-extrabold ${channel.budget - monthlySpend.reduce((sum, v) => sum + v, 0) < 0 ? 'text-red-600' : 'text-green-600'}`}>${channel.budget - monthlySpend.reduce((sum, v) => sum + v, 0)}</div>
                   </div>
-                  {showEditSpend && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-                      <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-lg relative">
-                        <button
-                          onClick={() => setShowEditSpend(false)}
-                          className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl"
-                          aria-label="Close"
-                        >
-                          ×
-                        </button>
-                        <h3 className="text-lg font-bold mb-4">Edit Monthly Spend</h3>
-                        <form onSubmit={e => { e.preventDefault(); handleEditSpendSave(); }}>
-                          <div className="grid grid-cols-3 gap-4 mb-4">
-                            {months.map((month, idx) => (
-                              <div key={month}>
-                                <label className="block text-xs font-medium mb-1">{month}</label>
-                                <input
-                                  type="number"
-                                  min="0"
-                                  step="0.01"
-                                  value={editSpend[idx]}
-                                  onChange={e => {
-                                    const val = parseFloat(e.target.value);
-                                    setEditSpend(prev => prev.map((v, i) => i === idx ? (isNaN(val) ? 0 : val) : v));
-                                  }}
-                                  className="w-full border rounded px-2 py-1"
-                                  placeholder="Spend"
-                                />
-                              </div>
-                            ))}
-                          </div>
-                          <div className="flex justify-end gap-2">
-                            <button
-                              type="button"
-                              onClick={() => setShowEditSpend(false)}
-                              className="btn btn-secondary"
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              type="submit"
-                              className="btn btn-primary"
-                            >
-                              Save
-                            </button>
-                          </div>
-                        </form>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
+              {showEditSpend && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+                  <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-lg relative">
+                    <button
+                      onClick={() => setShowEditSpend(false)}
+                      className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl"
+                      aria-label="Close"
+                    >
+                      ×
+                    </button>
+                    <h3 className="text-lg font-bold text-neutral-900 mb-4">Edit Monthly Spend</h3>
+                    <form onSubmit={e => { e.preventDefault(); handleEditSpendSave(); }}>
+                      <div className="grid grid-cols-3 gap-4 mb-4">
+                        {months.map((month, idx) => (
+                          <div key={month}>
+                            <label className="block text-xs font-medium text-neutral-800 mb-1">{month}</label>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={editSpend[idx]}
+                              onChange={e => {
+                                const val = parseFloat(e.target.value);
+                                setEditSpend(prev => prev.map((v, i) => i === idx ? (isNaN(val) ? 0 : val) : v));
+                              }}
+                              className="w-full border rounded px-2 py-1 text-neutral-900"
+                              placeholder="Spend"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowEditSpend(false)}
+                          className="btn btn-secondary"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="btn btn-primary"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
           {activeTab === 'campaigns' && (
             <div>
-              <h3 className="text-lg font-semibold mb-4 text-neutral-900">Campaign Management</h3>
+              <h3 className="text-2xl font-bold text-neutral-900 mb-4">Campaign Management</h3>
               <div className="bg-neutral-50 border border-neutral-200 p-6 rounded-xl">
                 <div className="flex justify-between items-center mb-4">
-                  <h4 className="text-sm font-semibold text-neutral-700">Active Campaigns</h4>
+                  <h4 className="text-sm font-semibold text-neutral-900">Active Campaigns</h4>
                   <button
                     className="btn btn-primary"
                     onClick={() => setShowAddCampaignModal(true)}
@@ -786,7 +862,7 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
                       <div key={campaign.id} className="bg-white border border-neutral-200 p-4 rounded-lg shadow-sm flex justify-between items-center hover:bg-neutral-50 transition-colors">
                         <div>
                           <div className="font-semibold text-base text-neutral-900">{campaign.name}</div>
-                          <div className="text-sm text-neutral-500">Status: {campaign.status}</div>
+                          <div className="text-sm text-neutral-700">Status: {campaign.status}</div>
                         </div>
                         <div className="flex gap-3">
                           <button
@@ -822,7 +898,7 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
                       </div>
                     ))
                   ) : (
-                    <div className="text-neutral-500">No campaigns assigned to this channel.</div>
+                    <div className="text-neutral-700">No campaigns assigned to this channel.</div>
                   )}
                 </div>
               </div>
@@ -899,10 +975,10 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
 
           {activeTab === 'recommendations' && (
             <div>
-              <h3 className="text-lg font-semibold mb-4">Recommendations</h3>
+              <h3 className="text-2xl font-bold text-neutral-900 mb-4">Recommendations</h3>
               {/* Add Recommendation Form */}
               <div className="bg-white p-4 rounded-lg shadow mb-4">
-                <h4 className="text-md font-semibold mb-2">Add Recommendation</h4>
+                <h4 className="text-md font-semibold text-neutral-900 mb-2">Add Recommendation</h4>
                 <form
                   onSubmit={e => {
                     e.preventDefault();
@@ -918,7 +994,7 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
                 >
                   <input
                     type="text"
-                    className="w-full border rounded px-2 py-2"
+                    className="w-full border rounded px-2 py-2 text-neutral-900"
                     placeholder="Recommendation Title"
                     value={manualRecommendationTitle}
                     onChange={e => setManualRecommendationTitle(e.target.value)}
@@ -926,7 +1002,7 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
                     required
                   />
                   <textarea
-                    className="w-full border rounded px-2 py-2"
+                    className="w-full border rounded px-2 py-2 text-neutral-900"
                     placeholder="Recommendation Description"
                     value={manualRecommendationDesc}
                     onChange={e => setManualRecommendationDesc(e.target.value)}
@@ -951,8 +1027,8 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
                   {recommendations.map((recommendation, idx) => (
                     <div key={idx} className="bg-white p-3 rounded shadow flex justify-between items-center">
                       <div>
-                        <div className="font-medium text-lg">{recommendation.title}</div>
-                        <div className="text-sm text-gray-500">{recommendation.description}</div>
+                        <div className="font-medium text-lg text-neutral-900">{recommendation.title}</div>
+                        <div className="text-sm text-neutral-700">{recommendation.description}</div>
                       </div>
                       <button
                         className="text-blue-600 hover:text-blue-800 font-semibold"

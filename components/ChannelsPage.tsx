@@ -105,7 +105,7 @@ const ChannelsPage = () => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold text-neutral-900">Marketing Channels</h2>
+        <h2 className="text-2xl font-semibold text-white">Marketing Channels</h2>
         <button
           onClick={() => {
             setEditChannel({
@@ -141,57 +141,48 @@ const ChannelsPage = () => {
         {channels.map((channel) => (
           <div
             key={channel.id}
-            className="bg-white rounded-xl border border-neutral-200 p-6 hover:shadow-md transition-shadow duration-200 cursor-pointer"
+            className="bg-[#1a1a1a] rounded-lg border border-[#374151] p-6 hover:bg-[#2a2a2a] transition-colors duration-150 cursor-pointer"
           >
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center space-x-3">
                 <span className="text-2xl">{typeIcons[channel.type] || '📊'}</span>
                 <div>
-                  <h3 className="font-medium text-neutral-900">{channel.name}</h3>
-                  <p className="text-sm text-neutral-500">{channel.type}</p>
+                  <h3 className="font-medium text-white">{channel.name}</h3>
+                  <p className="text-sm text-[#9ca3af]">{channel.type}</p>
                 </div>
               </div>
-              <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[channel.status]}`}>
+              <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                channel.status.toLowerCase() === 'active' ? 'bg-[#22c55e]/20 text-[#22c55e]' :
+                channel.status.toLowerCase() === 'paused' ? 'bg-[#f59e0b]/20 text-[#f59e0b]' :
+                channel.status.toLowerCase() === 'inactive' ? 'bg-[#64748b]/20 text-[#64748b]' :
+                'bg-[#ef4444]/20 text-[#ef4444]'
+              }`}>
                 {channel.status.charAt(0).toUpperCase() + channel.status.slice(1)}
               </span>
             </div>
-            
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-neutral-600">Budget Spent</span>
-                  <span className="font-medium text-neutral-900">
-                    ${channel.spend.toLocaleString()} / ${channel.budget.toLocaleString()}
-                  </span>
-                </div>
-                <div className="h-2 bg-neutral-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary-500 rounded-full transition-all duration-300"
-                    style={{ width: `${(channel.spend / channel.budget) * 100}%` }}
-                  />
-                </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center text-sm">
+                <span className="w-24 text-[#9ca3af]">Spend:</span>
+                <span className="text-[#e5e5e5]">${channel.spend?.toLocaleString()}</span>
               </div>
-              
-              <div className="flex justify-end space-x-2">
-                <button
-                  className="btn btn-secondary"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleEdit(channel);
-                  }}
-                >
-                  Edit
-                </button>
-                <button
-                  className="btn btn-primary"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleViewDetails(channel);
-                  }}
-                >
-                  View Details
-                </button>
+              <div className="flex items-center text-sm">
+                <span className="w-24 text-[#9ca3af]">Budget:</span>
+                <span className="text-[#e5e5e5]">${channel.budget?.toLocaleString()}</span>
               </div>
+              <div className="flex items-center text-sm">
+                <span className="w-24 text-[#9ca3af]">Progress:</span>
+                <span className="text-[#e5e5e5]">{Math.round((channel.spend / channel.budget) * 100)}%</span>
+              </div>
+            </div>
+
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => handleViewDetails(channel)}
+                className="text-[#007acc] hover:text-[#0062a3] font-medium text-sm"
+              >
+                View Details →
+              </button>
             </div>
           </div>
         ))}

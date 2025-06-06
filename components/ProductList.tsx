@@ -214,14 +214,9 @@ const ProductList = forwardRef((props, ref) => {
     return matchesSearch && matchesStatus && matchesDate;
   });
 
-  const handleRowClick = (id: number, event: React.MouseEvent) => {
-    // Don't navigate if clicking on action buttons
-    if ((event.target as HTMLElement).closest('button')) {
-      return;
-    }
-    event.preventDefault();
-    console.log('Navigating to campaign:', id);
-    router.push(`/products/${id}`);
+  const handleViewDetails = (product: Product) => {
+    console.log('Navigating to campaign:', product.id);
+    router.push(`/products/${product.id}`);
   };
 
   useImperativeHandle(ref, () => ({
@@ -329,10 +324,10 @@ const ProductList = forwardRef((props, ref) => {
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`
-              px-4 py-2 rounded-lg text-sm font-medium
+              px-4 py-2 rounded-md text-sm font-medium
               ${activeTab === tab
-                ? 'bg-primary-500 text-white'
-                : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                ? 'bg-[#007acc] text-white'
+                : 'bg-[#1a1a1a] text-[#e5e5e5] hover:bg-[#2a2a2a] border border-[#374151]'
               }
             `}
           >
@@ -342,57 +337,43 @@ const ProductList = forwardRef((props, ref) => {
       </div>
 
       {/* Product List */}
-      <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
-        <table className="min-w-full divide-y divide-neutral-200">
-          <thead className="bg-neutral-50">
+      <div className="bg-[#1a1a1a] rounded-lg border border-[#374151] overflow-hidden">
+        <table className="min-w-full divide-y divide-[#374151]">
+          <thead className="bg-[#2a2a2a]">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Launch Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Budget</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-[#9ca3af] uppercase tracking-wider">Name</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-[#9ca3af] uppercase tracking-wider">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-[#9ca3af] uppercase tracking-wider">Launch Date</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-[#9ca3af] uppercase tracking-wider">Budget</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-[#9ca3af] uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-neutral-200">
+          <tbody className="divide-y divide-[#374151]">
             {filteredProducts.map((product) => (
-              <tr
-                key={product.id}
-                className="hover:bg-neutral-50 cursor-pointer"
-                onClick={(e) => handleRowClick(product.id, e)}
-              >
+              <tr key={product.id} className="hover:bg-[#2a2a2a] transition-colors duration-150">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-white">{product.name}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-neutral-900">{product.name}</div>
-                  <div className="text-sm text-neutral-500">{product.description}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[product.status]}`}>
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                    product.status === 'Planned' ? 'bg-[#007acc]/20 text-[#007acc]' :
+                    product.status === 'In Progress' ? 'bg-[#f59e0b]/20 text-[#f59e0b]' :
+                    product.status === 'Launched' ? 'bg-[#22c55e]/20 text-[#22c55e]' :
+                    'bg-[#ef4444]/20 text-[#ef4444]'
+                  }`}>
                     {product.status}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
-                  {product.launch_date}
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-[#e5e5e5]">
+                  {product.launch_date ? new Date(product.launch_date).toLocaleDateString() : '-'}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
-                  ${product.budget.toLocaleString()}
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-[#e5e5e5]">
+                  ${product.budget?.toLocaleString() || '-'}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <td className="px-6 py-4 whitespace-nowrap text-sm">
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      router.push(`/products/${product.id}`);
-                    }}
-                    className="text-primary-600 hover:text-primary-900 mr-4"
+                    onClick={() => handleViewDetails(product)}
+                    className="text-[#007acc] hover:text-[#0062a3] font-medium"
                   >
-                    Edit
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteProduct(product.id);
-                    }}
-                    className="text-error-600 hover:text-error-900"
-                  >
-                    Delete
+                    View Details →
                   </button>
                 </td>
               </tr>

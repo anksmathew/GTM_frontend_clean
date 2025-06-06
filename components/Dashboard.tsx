@@ -5,27 +5,27 @@ import ProductList from './ProductList';
 import PersonaManager from './PersonaManager';
 
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState('channels');
+  const [activeTab, setActiveTab] = useState('campaigns');
   
   const tabs = [
-    { id: 'channels', label: 'Channels', icon: '📊' },
     { id: 'campaigns', label: 'Campaigns', icon: '🎯' },
+    { id: 'channels', label: 'Channels', icon: '📊' },
     { id: 'personas', label: 'Personas', icon: '👥' },
   ];
 
   return (
     <div className="space-y-8">
-      <nav className="flex space-x-1 bg-white rounded-xl p-1 shadow-sm">
+      <nav className="flex space-x-1 bg-[#1a1a1a] rounded-lg p-1 border border-[#374151]">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`
-              flex items-center px-4 py-2.5 text-sm font-medium rounded-lg
-              transition-all duration-200 ease-in-out
+              flex items-center px-4 py-2.5 text-sm font-medium rounded-md
+              transition-all duration-150 ease-in-out
               ${activeTab === tab.id 
-                ? 'bg-primary-600 text-white shadow-sm' 
-                : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
+                ? 'bg-[#007acc] text-white shadow-sm' 
+                : 'text-[#e5e5e5] hover:bg-[#2a2a2a] hover:text-white'
               }
             `}
           >
@@ -35,7 +35,7 @@ const Dashboard = () => {
         ))}
       </nav>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-neutral-200 overflow-hidden">
+      <div className="bg-[#1a1a1a] rounded-lg border border-[#374151] overflow-hidden">
         {activeTab === 'channels' && <ChannelsPage />}
         {activeTab === 'campaigns' && <ProductList />}
         {activeTab === 'personas' && <PersonaManager />}

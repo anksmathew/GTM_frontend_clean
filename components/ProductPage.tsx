@@ -285,26 +285,26 @@ const ProductPage = ({ params }: { params: { id: string } }) => {
               <div className="space-y-4">
                 {channels.map((channel) => (
                   <div key={channel.id} className="border-b border-neutral-100 pb-4 last:border-b-0">
-                    <h3 className="font-medium text-neutral-900">{channel.name}</h3>
+                    <h3 className="font-medium text-white">{channel.name}</h3>
                     <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
                       {channel.type && (
                         <div>
-                          <span className="text-neutral-500">Type:</span> {channel.type}
+                          <span className="text-[#9ca3af]">Type:</span> {channel.type}
                         </div>
                       )}
                       {channel.status && (
                         <div>
-                          <span className="text-neutral-500">Status:</span> {channel.status}
+                          <span className="text-[#9ca3af]">Status:</span> <span className={`px-2 py-1 text-xs font-medium rounded-full ${channel.status.toLowerCase() === 'active' ? 'bg-[#22c55e]/20 text-[#22c55e]' : channel.status.toLowerCase() === 'paused' ? 'bg-[#f59e0b]/20 text-[#f59e0b]' : channel.status.toLowerCase() === 'inactive' ? 'bg-[#64748b]/20 text-[#64748b]' : 'bg-[#ef4444]/20 text-[#ef4444]'}`}>{channel.status.charAt(0).toUpperCase() + channel.status.slice(1)}</span>
                         </div>
                       )}
                       {channel.budget && (
                         <div>
-                          <span className="text-neutral-500">Budget:</span> ${channel.budget.toLocaleString()}
+                          <span className="text-[#9ca3af]">Budget:</span> ${channel.budget.toLocaleString()}
                         </div>
                       )}
                       {channel.spend && (
                         <div>
-                          <span className="text-neutral-500">Spend:</span> ${channel.spend.toLocaleString()}
+                          <span className="text-[#9ca3af]">Spend:</span> ${channel.spend.toLocaleString()}
                         </div>
                       )}
                     </div>
