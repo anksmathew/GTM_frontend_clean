@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import CampaignModal from './CampaignModal';
 
 type Product = {
   id: number;
@@ -70,6 +71,7 @@ const ProductList = forwardRef((props, ref) => {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [selectedChannels, setSelectedChannels] = useState<number[]>([]);
   const [editSelectedChannels, setEditSelectedChannels] = useState<number[]>([]);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
     fetchProducts();
@@ -227,89 +229,15 @@ const ProductList = forwardRef((props, ref) => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-semibold text-neutral-900">Campaigns</h2>
-        <button
-          onClick={() => setShowFilters(!showFilters)}
-          className="btn btn-secondary"
-        >
-          Filters
-        </button>
-      </div>
-
-      {/* Add Campaign Form */}
-      <div className="mb-8 p-6 bg-neutral-50 rounded-xl border border-neutral-200">
-        <h3 className="text-lg font-medium text-neutral-900 mb-4">Add New Campaign</h3>
-        {error && <div className="mb-4 p-3 bg-error-100 text-error-700 rounded-lg">{error}</div>}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input
-            type="text"
-            name="name"
-            value={newProduct.name}
-            onChange={handleInputChange}
-            placeholder="Campaign Name"
-            className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
-          />
-          <input
-            type="text"
-            name="description"
-            value={newProduct.description}
-            onChange={handleInputChange}
-            placeholder="Description"
-            className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
-          />
-          <input
-            type="date"
-            name="launch_date"
-            value={newProduct.launch_date}
-            onChange={handleInputChange}
-            placeholder="Launch Date"
-            className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
-          />
-          <select
-            name="status"
-            value={newProduct.status}
-            onChange={handleInputChange}
-            className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
-          >
-            {statusOptions.map((option) => (
-              <option key={option} value={option}>{option}</option>
-            ))}
-          </select>
-          <div className="relative flex items-center">
-            <span className="absolute left-3 text-neutral-400 font-medium pointer-events-none">Budget</span>
-            <input
-              type="number"
-              name="budget"
-              value={newProduct.budget}
-              onChange={handleInputChange}
-              className="pl-20 px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400 w-full bg-white text-neutral-900 placeholder:text-neutral-400"
-              min="0"
-            />
-          </div>
-          <select
-            name="team"
-            value={newProduct.team}
-            onChange={handleInputChange}
-            className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
-          >
-            <option value="">Select Team</option>
-            <option value="Engineering">Engineering</option>
-            <option value="Product">Product</option>
-            <option value="Design">Design</option>
-            <option value="Marketing">Marketing</option>
-            <option value="Sales">Sales</option>
-            <option value="Customer Success">Customer Success</option>
-            <option value="Support">Support</option>
-            <option value="HR">HR</option>
-            <option value="Finance">Finance</option>
-            <option value="Operations">Operations</option>
-            <option value="QA">QA</option>
-            <option value="IT">IT</option>
-            <option value="Legal">Legal</option>
-          </select>
-        </div>
-        <div className="mt-4 flex justify-end">
+        <div className="flex gap-2">
           <button
-            onClick={handleAddProduct}
+            onClick={() => setShowFilters(!showFilters)}
+            className="btn btn-secondary"
+          >
+            Filters
+          </button>
+          <button
+            onClick={() => setShowAddModal(true)}
             className="btn btn-primary"
           >
             Add Campaign
@@ -381,6 +309,13 @@ const ProductList = forwardRef((props, ref) => {
           </tbody>
         </table>
       </div>
+
+      <CampaignModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSave={fetchProducts}
+        mode="add"
+      />
     </div>
   );
 });
