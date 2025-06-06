@@ -106,6 +106,7 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
   const [recommendations, setRecommendations] = useState<{ title: string; description: string }[]>(initialChannel.recommendations || []);
   const [manualRecommendationTitle, setManualRecommendationTitle] = useState('');
   const [manualRecommendationDesc, setManualRecommendationDesc] = useState('');
+  const [editingRecommendationIdx, setEditingRecommendationIdx] = useState<number | null>(null);
   const [loadingClaude, setLoadingClaude] = useState(false);
 
   // Find the max value for dynamic Y-axis scaling
@@ -257,7 +258,7 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
     );
     setMonthlySpend(initialMonthlySpend);
     setChannel({ ...channel, spend: totalSpend, monthlySpend: initialMonthlySpend });
-    setRecommendations(channel.recommendations || []);
+    setRecommendations(Array.isArray(channel.recommendations) ? channel.recommendations : []);
   }, [channel.id]);
 
   const handleSaveAll = (overrideCTR?: number[], overrideCR?: number[]) => {
@@ -362,7 +363,7 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
     setLoadingClaude(true);
     try {
       const res = await axios.post('/api/claude-recommendations', { channel });
-      setRecommendations(res.data.recommendations || []);
+      setRecommendations(Array.isArray(res.data.recommendations) ? res.data.recommendations : []);
     } catch {
       setRecommendations([{ title: 'Error', description: 'Could not fetch recommendations from Claude.' }]);
     }
@@ -1072,15 +1073,22 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
               <h3 className="text-2xl font-bold text-neutral-900 mb-4">Recommendations</h3>
               {/* Add Recommendation Form */}
               <div className="bg-white p-4 rounded-lg shadow mb-4">
-                <h4 className="text-md font-semibold text-neutral-900 mb-2">Add Recommendation</h4>
+                <h4 className="text-md font-semibold text-neutral-900 mb-2">{editingRecommendationIdx !== null ? 'Edit Recommendation' : 'Add Recommendation'}</h4>
                 <form
                   onSubmit={e => {
                     e.preventDefault();
                     if (!manualRecommendationTitle.trim() || !manualRecommendationDesc.trim()) return;
-                    setRecommendations([
-                      ...recommendations,
-                      { title: manualRecommendationTitle, description: manualRecommendationDesc }
-                    ]);
+                    if (editingRecommendationIdx !== null) {
+                      // Update existing recommendation
+                      setRecommendations(recommendations => recommendations.map((rec, idx) => idx === editingRecommendationIdx ? { title: manualRecommendationTitle, description: manualRecommendationDesc } : rec));
+                      setEditingRecommendationIdx(null);
+                    } else {
+                      // Add new recommendation
+                      setRecommendations([
+                        ...recommendations,
+                        { title: manualRecommendationTitle, description: manualRecommendationDesc }
+                      ]);
+                    }
                     setManualRecommendationTitle('');
                     setManualRecommendationDesc('');
                   }}
@@ -1104,13 +1112,26 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
                     maxLength={300}
                     required
                   />
-                  <div className="flex justify-end">
+                  <div className="flex justify-end gap-2">
+                    {editingRecommendationIdx !== null && (
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => {
+                          setEditingRecommendationIdx(null);
+                          setManualRecommendationTitle('');
+                          setManualRecommendationDesc('');
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    )}
                     <button
                       type="submit"
                       className="btn btn-primary"
                       disabled={!manualRecommendationTitle.trim() || !manualRecommendationDesc.trim()}
                     >
-                      Add Recommendation
+                      {editingRecommendationIdx !== null ? 'Save' : 'Add Recommendation'}
                     </button>
                   </div>
                 </form>
@@ -1118,21 +1139,38 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
               {/* Existing Recommendations List */}
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="space-y-2">
-                  {recommendations.map((recommendation, idx) => (
-                    <div key={idx} className="bg-white p-3 rounded shadow flex justify-between items-center">
+                  {Array.isArray(recommendations) && recommendations.map((recommendation, idx) => (
+                    <div key={idx} className="bg-white p-3 rounded shadow flex justify-between items-center gap-2">
                       <div>
                         <div className="font-medium text-lg text-neutral-900">{recommendation.title}</div>
                         <div className="text-sm text-neutral-700">{recommendation.description}</div>
                       </div>
-                      <button
-                        className="text-blue-600 hover:text-blue-800 font-semibold"
-                        onClick={() => {
-                          setManualRecommendationTitle(recommendation.title);
-                          setManualRecommendationDesc(recommendation.description);
-                        }}
-                      >
-                        Edit
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          className="text-blue-600 hover:text-blue-800 font-semibold"
+                          onClick={() => {
+                            setManualRecommendationTitle(recommendation.title);
+                            setManualRecommendationDesc(recommendation.description);
+                            setEditingRecommendationIdx(idx);
+                          }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="text-red-600 hover:text-red-800 font-semibold"
+                          onClick={() => {
+                            setRecommendations(recommendations.filter((_, i) => i !== idx));
+                            // If deleting the one being edited, reset form
+                            if (editingRecommendationIdx === idx) {
+                              setEditingRecommendationIdx(null);
+                              setManualRecommendationTitle('');
+                              setManualRecommendationDesc('');
+                            }
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
