@@ -50,6 +50,8 @@ const ProductPage = ({ params }: { params: { id: string } }) => {
   const [showAddChannelModal, setShowAddChannelModal] = useState(false);
   const [addChannelLoading, setAddChannelLoading] = useState(false);
   const [addChannelError, setAddChannelError] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   
   useEffect(() => {
     const fetchProductData = async () => {
@@ -157,6 +159,20 @@ const ProductPage = ({ params }: { params: { id: string } }) => {
     }
   };
 
+  const handleDeleteCampaign = async () => {
+    if (!product?.id) return;
+    setDeleteLoading(true);
+    try {
+      await axios.delete(`${API_URL}/api/campaigns/${product.id}`);
+      router.push('/'); // Redirect to home page after deletion
+    } catch (err) {
+      alert('Failed to delete campaign.');
+    } finally {
+      setDeleteLoading(false);
+      setShowDeleteModal(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-6">
@@ -188,14 +204,57 @@ const ProductPage = ({ params }: { params: { id: string } }) => {
   return (
     <div className="min-h-screen bg-neutral-50 p-6">
       <div className="max-w-5xl mx-auto">
-        <div className="mb-6">
+        <div className="mb-6 flex justify-between items-center">
           <button 
             onClick={() => router.back()}
             className="px-4 py-2 bg-neutral-100 rounded-lg hover:bg-neutral-200 text-neutral-700 font-medium"
           >
             ← Back to Campaigns
           </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleEditClick}
+              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
+            >
+              Edit Campaign
+            </button>
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
+            >
+              Delete Campaign
+            </button>
+          </div>
         </div>
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+            <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md relative">
+              <h3 className="text-xl font-bold text-neutral-900 mb-4">Delete Campaign</h3>
+              <p className="text-neutral-600 mb-6">
+                Are you sure you want to delete "{product.name}"? This action cannot be undone.
+              </p>
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-4 py-2 bg-neutral-100 text-neutral-700 rounded-lg hover:bg-neutral-200 font-medium"
+                  disabled={deleteLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteCampaign}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
+                  disabled={deleteLoading}
+                >
+                  {deleteLoading ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-neutral-900">{product.name}</h1>
         </div>

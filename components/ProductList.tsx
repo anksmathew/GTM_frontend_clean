@@ -65,7 +65,12 @@ const ProductList = forwardRef((props, ref) => {
   const [statusFilter, setStatusFilter] = useState('');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [showFilters, setShowFilters] = useState(false);
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const [sortField, setSortField] = useState<string>('name');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const filterDropdownRef = useRef<HTMLDivElement>(null);
+  const sortDropdownRef = useRef<HTMLDivElement>(null);
   const statusTabs = ['All', ...statusOptions];
   const [activeTab, setActiveTab] = useState('All');
   const [channels, setChannels] = useState<Channel[]>([]);
@@ -80,17 +85,17 @@ const ProductList = forwardRef((props, ref) => {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target as Node)) {
-        setShowFilters(false);
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target as Node)) {
+        setShowSortDropdown(false);
       }
     }
-    if (showFilters) {
+    if (showSortDropdown) {
       document.addEventListener('mousedown', handleClickOutside);
     } else {
       document.removeEventListener('mousedown', handleClickOutside);
     }
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showFilters]);
+  }, [showSortDropdown]);
 
   const fetchProducts = async () => {
     try {
@@ -202,7 +207,7 @@ const ProductList = forwardRef((props, ref) => {
     }
   };
 
-  // Filtering logic
+  // Filtering and sorting logic
   const filteredProducts = products.filter(product => {
     const matchesSearch =
       product.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -214,7 +219,40 @@ const ProductList = forwardRef((props, ref) => {
       (!dateRange.start || product.launch_date >= dateRange.start) &&
       (!dateRange.end || product.launch_date <= dateRange.end);
     return matchesSearch && matchesStatus && matchesDate;
+  }).sort((a, b) => {
+    let comparison = 0;
+    switch (sortField) {
+      case 'name':
+        comparison = a.name.localeCompare(b.name);
+        break;
+      case 'status':
+        comparison = a.status.localeCompare(b.status);
+        break;
+      case 'launch_date':
+        comparison = new Date(a.launch_date).getTime() - new Date(b.launch_date).getTime();
+        break;
+      case 'budget':
+        comparison = (a.budget || 0) - (b.budget || 0);
+        break;
+      default:
+        comparison = 0;
+    }
+    return sortDirection === 'asc' ? comparison : -comparison;
   });
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const handleFilterChange = (status: string) => {
+    setStatusFilter(status);
+    setShowFilters(false);
+  };
 
   const handleViewDetails = (product: Product) => {
     console.log('Navigating to campaign:', product.id);
@@ -226,7 +264,7 @@ const ProductList = forwardRef((props, ref) => {
   }));
 
   return (
-    <div className="p-0 bg-white">
+    <div className="p-0">
       {/* Header Bar */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div className="flex items-center gap-2 w-full md:w-auto">
@@ -237,8 +275,47 @@ const ProductList = forwardRef((props, ref) => {
             onChange={e => setSearch(e.target.value)}
             className="rounded-lg border border-[#E5E7EB] bg-white text-[#181C2A] px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 w-full md:w-64 shadow-sm"
           />
-          <button className="px-3 py-2 rounded-lg border border-[#E5E7EB] bg-white text-[#181C2A] text-sm font-medium hover:bg-[#F3F4F6] shadow-sm">Sort</button>
-          <button onClick={() => setShowFilters(!showFilters)} className="px-3 py-2 rounded-lg border border-[#E5E7EB] bg-white text-[#181C2A] text-sm font-medium hover:bg-[#F3F4F6] shadow-sm">Filter</button>
+          <div className="relative">
+            <button 
+              onClick={() => setShowSortDropdown(!showSortDropdown)}
+              className="px-3 py-2 rounded-lg border border-[#E5E7EB] bg-white text-[#181C2A] text-sm font-medium hover:bg-[#F3F4F6] shadow-sm"
+            >
+              Sort
+            </button>
+            {showSortDropdown && (
+              <div 
+                ref={sortDropdownRef}
+                className="absolute z-10 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5"
+              >
+                <div className="py-1">
+                  <button
+                    onClick={() => handleSort('name')}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Name {sortField === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}
+                  </button>
+                  <button
+                    onClick={() => handleSort('status')}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Status {sortField === 'status' && (sortDirection === 'asc' ? '↑' : '↓')}
+                  </button>
+                  <button
+                    onClick={() => handleSort('launch_date')}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Launch Date {sortField === 'launch_date' && (sortDirection === 'asc' ? '↑' : '↓')}
+                  </button>
+                  <button
+                    onClick={() => handleSort('budget')}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Budget {sortField === 'budget' && (sortDirection === 'asc' ? '↑' : '↓')}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
@@ -247,7 +324,7 @@ const ProductList = forwardRef((props, ref) => {
           + Add Campaign
         </button>
       </div>
-
+      <div className="border-b border-[#E5E7EB] mb-4" />
       {/* Status Tabs */}
       <div className="flex space-x-2 mb-6">
         {statusTabs.map((tab) => (
@@ -267,6 +344,7 @@ const ProductList = forwardRef((props, ref) => {
           </button>
         ))}
       </div>
+      
 
       {/* Product List Table */}
       <div className="bg-white rounded-2xl shadow-lg border border-[#E5E7EB] overflow-hidden">
@@ -282,7 +360,14 @@ const ProductList = forwardRef((props, ref) => {
           </thead>
           <tbody>
             {filteredProducts.map((product, idx) => (
-              <tr key={product.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-[#F8FAFC]'}>
+              <tr 
+                key={product.id} 
+                onClick={() => handleViewDetails(product)}
+                className={`
+                  ${idx % 2 === 0 ? 'bg-white' : 'bg-[#F8FAFC]'} 
+                  hover:bg-green-50 cursor-pointer transition-colors duration-150
+                `}
+              >
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#181C2A]">{product.name}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`px-3 py-1 text-xs font-semibold rounded-full shadow-sm
@@ -301,12 +386,9 @@ const ProductList = forwardRef((props, ref) => {
                   ${product.budget?.toLocaleString() || '-'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
-                  <button
-                    onClick={() => handleViewDetails(product)}
-                    className="text-green-600 hover:text-green-800 font-semibold"
-                  >
+                  <span className="text-green-600 font-semibold">
                     View Details →
-                  </button>
+                  </span>
                 </td>
               </tr>
             ))}
