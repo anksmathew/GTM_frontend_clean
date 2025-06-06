@@ -98,11 +98,9 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
   const [roiInput, setRoiInput] = useState(channel.roi);
   const [showEditSpend, setShowEditSpend] = useState(false);
   const [monthlySpend, setMonthlySpend] = useState<number[]>(
-    initialChannel.monthlySpend && Array.isArray(initialChannel.monthlySpend)
-      ? initialChannel.monthlySpend
-      : [800, 1200, 1000, 1500, 2000, 1800, 0, 0, 0, 0, 0, 0]
+    ensure12(initialChannel.monthlySpend, 0)
   );
-  const [editSpend, setEditSpend] = useState([...monthlySpend]);
+  const [editSpend, setEditSpend] = useState<(number | '')[]>([...monthlySpend]);
 
   // Recommendations
   const [recommendations, setRecommendations] = useState<{ title: string; description: string }[]>(initialChannel.recommendations || []);
@@ -165,6 +163,9 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
         label: 'Monthly Spend',
         data: monthlySpend,
         backgroundColor: '#3b82f6',
+        borderColor: '#3b82f6',
+        borderWidth: 1,
+        borderRadius: 4,
       },
     ],
   };
@@ -227,11 +228,14 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
   }, [activeTab, channel.id]);
 
   useEffect(() => {
+    const initialMonthlySpend = ensure12(channel.monthlySpend, 0);
+    const totalSpend = initialMonthlySpend.reduce((sum, v) => sum + v, 0);
+    
     setForm({
       name: channel.name || '',
       type: channel.type || 'Email',
       budget: channel.budget || 0,
-      spend: channel.spend || 0,
+      spend: totalSpend,
       ctr: channel.ctr || 0,
       conversion_rate: channel.conversion_rate || 0,
       roi: channel.roi || 0,
@@ -244,29 +248,28 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
       assigned_campaigns: channel.assigned_campaigns || [],
       assigned_personas: channel.assigned_personas || [],
     });
+    
     setHistoricalCTR(
       ensure12(channel.historicalCTR, (channel.ctr || 0) * 100)
     );
     setHistoricalConversionRate(
       ensure12(channel.historicalConversionRate, (channel.conversion_rate || 0) * 100)
     );
-    setMonthlySpend(
-      channel.monthlySpend && Array.isArray(channel.monthlySpend)
-        ? channel.monthlySpend
-        : [800, 1200, 1000, 1500, 2000, 1800, 0, 0, 0, 0, 0, 0]
-    );
+    setMonthlySpend(initialMonthlySpend);
+    setChannel({ ...channel, spend: totalSpend, monthlySpend: initialMonthlySpend });
     setRecommendations(channel.recommendations || []);
   }, [channel.id]);
 
   const handleSaveAll = (overrideCTR?: number[], overrideCR?: number[]) => {
     const ctrArr = overrideCTR ? [...overrideCTR] : [...historicalCTR];
     const crArr = overrideCR ? [...overrideCR] : [...historicalConversionRate];
+    const totalSpend = monthlySpend.reduce((sum, v) => sum + v, 0);
     const updatedChannel: ChannelWithHistory = {
       id: channel.id,
       name: form.name,
       type: form.type,
       budget: form.budget,
-      spend: form.spend,
+      spend: totalSpend,
       ctr: form.ctr,
       conversion_rate: form.conversion_rate,
       roi: form.roi,
@@ -280,6 +283,8 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
       assigned_personas: form.assigned_personas,
       historicalCTR: ctrArr ?? [],
       historicalConversionRate: crArr ?? [],
+      monthlySpend: monthlySpend,
+      recommendations: recommendations,
     };
     console.log('handleSaveAll called, updatedChannel:', updatedChannel);
     setChannel(updatedChannel);
@@ -307,10 +312,49 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
     if (onEdit) onEdit(updated);
   };
 
-  const handleEditSpendSave = () => {
-    setMonthlySpend([...editSpend]);
+  const handleEditSpendSave = async () => {
+    // Convert blank fields to 0 before saving
+    const normalizedSpend: number[] = editSpend.map(v => v === '' ? 0 : v as number);
+    const safeSpend = ensure12(normalizedSpend, 0);
+    const total = safeSpend.reduce((sum, v) => sum + v, 0);
+    setMonthlySpend(safeSpend);
     setShowEditSpend(false);
-    setChannel({ ...channel, monthlySpend: [...editSpend] });
+
+    // Update the channel's spend to match the new total
+    const updatedChannel = {
+      ...channel,
+      monthlySpend: safeSpend,
+      spend: total
+    };
+    setChannel(updatedChannel);
+
+    // Persist to backend
+    try {
+      await axios.put(`${API_URL}/api/channels/${channel.id}`, {
+        id: channel.id,
+        name: channel.name,
+        type: channel.type,
+        status: channel.status,
+        budget: channel.budget,
+        spend: total,
+        roi: channel.roi,
+        ctr: channel.ctr,
+        conversion_rate: channel.conversion_rate,
+        historicalCTR: channel.historicalCTR || [],
+        historicalConversionRate: channel.historicalConversionRate || [],
+        monthlySpend: [...safeSpend],
+      });
+
+      // Refetch the latest channel data and update local state
+      const res = await axios.get(`${API_URL}/api/channels/${channel.id}`);
+      setChannel(res.data.channel);
+      setMonthlySpend(res.data.channel.monthlySpend || []);
+    } catch (error) {
+      console.error('Failed to save spend:', error);
+      // Optionally show an error to the user
+    }
+
+    if (onEdit) onEdit(updatedChannel);
   };
 
   // Claude API fetch
@@ -361,6 +405,22 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
       setAddingCampaign(false);
     }
   };
+
+  // Fetch latest channel data when modal opens
+  useEffect(() => {
+    async function fetchChannel() {
+      if (channel.id) {
+        try {
+          const res = await axios.get(`${API_URL}/api/channels/${channel.id}`);
+          setChannel(res.data.channel);
+        } catch (error) {
+          console.error('Failed to fetch channel:', error);
+        }
+      }
+    }
+    fetchChannel();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [channel.id]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/30 backdrop-blur-sm">
@@ -660,7 +720,7 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
 
           {activeTab === 'budget' && (
             <div>
-              <h3 className="text-2xl font-bold text-neutral-900 mb-4">Budget Overview</h3>
+            
               <div className="mb-3">
                 <h4 className="text-xl font-bold text-neutral-900 mb-1">Budget Allocation</h4>
                 <p className="text-sm text-neutral-700 mb-1">View and manage your channel's budget allocation and spending timeline.</p>
@@ -767,26 +827,60 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
                       Edit Spend
                     </button>
                   </div>
-                  <Bar data={spendingTimelineData} options={{
-                    plugins: {
-                      legend: { labels: { color: '#1a202c', font: { weight: 'bold' } } },
-                    },
-                    scales: {
-                      y: {
-                        beginAtZero: true,
-                        suggestedMax: Math.max(...monthlySpend, 2000) * 1.1,
-                        max: Math.max(...monthlySpend, 2000) * 1.1,
-                        ticks: { color: '#1a202c', font: { weight: 'bold' } },
-                        title: { color: '#1a202c', font: { weight: 'bold' } },
-                      },
-                      x: {
-                        ticks: { color: '#1a202c', font: { weight: 'bold' } },
-                      },
-                    }
-                  }} />
+                  <div className="h-64">
+                    {monthlySpend.every(v => v === 0) ? (
+                      <div className="flex items-center justify-center h-full text-gray-400 text-lg">No spending data available</div>
+                    ) : (
+                      <Bar 
+                        data={spendingTimelineData} 
+                        options={{
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          plugins: {
+                            legend: { 
+                              display: false 
+                            },
+                            tooltip: {
+                              callbacks: {
+                                label: function(context) {
+                                  return `$${context.raw}`;
+                                }
+                              }
+                            }
+                          },
+                          scales: {
+                            y: {
+                              beginAtZero: true,
+                              title: {
+                                display: true,
+                                text: 'Amount ($)',
+                                color: '#1a202c',
+                                font: { weight: 'bold' }
+                              },
+                              ticks: {
+                                color: '#1a202c',
+                                font: { weight: 'bold' },
+                                callback: function(value) {
+                                  return '$' + value;
+                                }
+                              }
+                            },
+                            x: {
+                              ticks: {
+                                color: '#1a202c',
+                                font: { weight: 'bold' }
+                              }
+                            }
+                          }
+                        }} 
+                      />
+                    )}
+                  </div>
                   <div className="mt-4 bg-white p-3 rounded shadow">
                     <div className="text-sm text-neutral-700 font-medium">Budget Remaining</div>
-                    <div className={`text-xl font-extrabold ${channel.budget - monthlySpend.reduce((sum, v) => sum + v, 0) < 0 ? 'text-red-600' : 'text-green-600'}`}>${channel.budget - monthlySpend.reduce((sum, v) => sum + v, 0)}</div>
+                    <div className={`text-xl font-extrabold ${channel.budget - monthlySpend.reduce((sum, v) => sum + v, 0) < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                      ${channel.budget - monthlySpend.reduce((sum, v) => sum + v, 0)}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -810,10 +904,10 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
                               type="number"
                               min="0"
                               step="0.01"
-                              value={editSpend[idx]}
+                              value={editSpend[idx] === 0 || editSpend[idx] === '' ? '' : editSpend[idx]}
                               onChange={e => {
-                                const val = parseFloat(e.target.value);
-                                setEditSpend(prev => prev.map((v, i) => i === idx ? (isNaN(val) ? 0 : val) : v));
+                                const val = e.target.value === '' ? '' : parseFloat(e.target.value);
+                                setEditSpend(prev => prev.map((v, i) => i === idx ? (val === '' ? '' : (isNaN(val) ? 0 : val)) : v));
                               }}
                               className="w-full border rounded px-2 py-1 text-neutral-900"
                               placeholder="Spend"
