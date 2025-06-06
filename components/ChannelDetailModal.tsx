@@ -108,6 +108,7 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
   const [manualRecommendationDesc, setManualRecommendationDesc] = useState('');
   const [editingRecommendationIdx, setEditingRecommendationIdx] = useState<number | null>(null);
   const [loadingClaude, setLoadingClaude] = useState(false);
+  const [savingRecommendations, setSavingRecommendations] = useState(false);
 
   // Find the max value for dynamic Y-axis scaling
   const maxGraphValue = Math.max(
@@ -414,6 +415,7 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
         try {
           const res = await axios.get(`${API_URL}/api/channels/${channel.id}`);
           setChannel(res.data.channel);
+          setRecommendations(Array.isArray(res.data.channel.recommendations) ? res.data.channel.recommendations : []);
         } catch (error) {
           console.error('Failed to fetch channel:', error);
         }
@@ -422,6 +424,29 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
     fetchChannel();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channel.id]);
+
+  // Save recommendations to backend
+  const saveRecommendations = async (newRecommendations: { title: string; description: string }[]) => {
+    if (!channel.id) return;
+    setSavingRecommendations(true);
+    try {
+      await axios.put(`${API_URL}/api/channels/${channel.id}`,
+        {
+          ...channel,
+          recommendations: newRecommendations,
+        }
+      );
+      // Optionally, refetch channel data here if you want to keep local state in sync
+    } catch (error) {
+      console.error('Failed to save recommendations:', error);
+    }
+    setSavingRecommendations(false);
+  };
+
+  // Always sync recommendations state with the latest channel prop or fetched channel
+  useEffect(() => {
+    setRecommendations(Array.isArray(channel.recommendations) ? channel.recommendations : []);
+  }, [channel.recommendations]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/30 backdrop-blur-sm">
@@ -1080,14 +1105,18 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
                     if (!manualRecommendationTitle.trim() || !manualRecommendationDesc.trim()) return;
                     if (editingRecommendationIdx !== null) {
                       // Update existing recommendation
-                      setRecommendations(recommendations => recommendations.map((rec, idx) => idx === editingRecommendationIdx ? { title: manualRecommendationTitle, description: manualRecommendationDesc } : rec));
+                      const updated = recommendations.map((rec, idx) => idx === editingRecommendationIdx ? { title: manualRecommendationTitle, description: manualRecommendationDesc } : rec);
+                      setRecommendations(updated);
+                      saveRecommendations(updated);
                       setEditingRecommendationIdx(null);
                     } else {
                       // Add new recommendation
-                      setRecommendations([
+                      const updated = [
                         ...recommendations,
                         { title: manualRecommendationTitle, description: manualRecommendationDesc }
-                      ]);
+                      ];
+                      setRecommendations(updated);
+                      saveRecommendations(updated);
                     }
                     setManualRecommendationTitle('');
                     setManualRecommendationDesc('');
@@ -1159,7 +1188,9 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
                         <button
                           className="text-red-600 hover:text-red-800 font-semibold"
                           onClick={() => {
-                            setRecommendations(recommendations.filter((_, i) => i !== idx));
+                            const updated = recommendations.filter((_, i) => i !== idx);
+                            setRecommendations(updated);
+                            saveRecommendations(updated);
                             // If deleting the one being edited, reset form
                             if (editingRecommendationIdx === idx) {
                               setEditingRecommendationIdx(null);
