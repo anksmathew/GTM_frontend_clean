@@ -1,13 +1,10 @@
+'use client';
 import React from 'react';
 import { FaTachometerAlt, FaTasks, FaCalendarAlt, FaUserFriends, FaEnvelope, FaChartBar, FaCog, FaQuestionCircle } from 'react-icons/fa';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 const navItems = [
-  { section: 'Sales', items: [
-    { label: 'Leads', icon: <FaUserFriends />, active: false },
-    { label: 'Opportunities', icon: <FaChartBar />, active: false },
-    { label: 'Contacts', icon: <FaUserFriends />, active: false },
-    { label: 'Companies', icon: <FaChartBar />, active: true },
-  ]},
   { section: 'Marketing', items: [
     { label: 'Forms', icon: <FaEnvelope />, active: false },
     { label: 'Emails', icon: <FaEnvelope />, active: false },
@@ -16,6 +13,8 @@ const navItems = [
 ];
 
 export default function Sidebar() {
+  const pathname = usePathname();
+
   return (
     <aside className="flex flex-col justify-between h-full w-64 bg-[#181C2A] rounded-2xl p-6 shadow-lg">
       <div>
@@ -33,9 +32,11 @@ export default function Sidebar() {
                 </a>
               </li>
               <li>
-                <a href="#" className="flex items-center gap-3 px-3 py-2 rounded-lg text-[#A0AEC0] hover:bg-[#232946] hover:text-white">
-                  <FaTasks className="text-lg" /> Task
-                </a>
+                <Link href="/tasks" legacyBehavior>
+                  <a className={`flex items-center gap-3 px-3 py-2 rounded-lg font-semibold ${pathname === '/tasks' ? 'bg-[#232946] text-white' : 'text-[#A0AEC0] hover:bg-[#232946] hover:text-white'}`}>
+                    <FaTasks className="text-lg" /> Task
+                  </a>
+                </Link>
               </li>
               <li>
                 <a href="#" className="flex items-center gap-3 px-3 py-2 rounded-lg text-[#A0AEC0] hover:bg-[#232946] hover:text-white">
