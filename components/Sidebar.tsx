@@ -18,10 +18,10 @@ export default function Sidebar() {
   return (
     <aside className="flex flex-col justify-between h-full w-64 bg-[#181C2A] rounded-2xl p-6 shadow-lg">
       <div>
-        <div className="flex items-center mb-10">
+        <Link href="/" className="flex items-center mb-10 cursor-pointer">
           <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold mr-3">C</div>
           <span className="text-xl font-bold text-white">Catapult</span>
-        </div>
+        </Link>
         <nav className="space-y-8">
           <div>
             <div className="text-xs uppercase text-[#7C8DB5] font-bold mb-2">Main</div>
