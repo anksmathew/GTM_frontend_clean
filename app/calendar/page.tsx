@@ -52,6 +52,28 @@ const CalendarPage = () => {
     fetchData();
   }, []);
 
+  const handleEventMove = async (event: any, newDate: string) => {
+    if (event.type === 'campaign') {
+      const campaignId = event.id.toString().replace('campaign-', '');
+      // Fetch the current campaign details
+      const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/campaigns/${campaignId}`);
+      const campaign = data.campaign || data;
+      await axios.put(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/campaigns/${campaignId}`,
+        {
+          ...campaign,
+          launch_date: newDate,
+        }
+      );
+    } else if (event.type === 'task') {
+      await axios.put(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/tasks/${event.id.toString().replace('task-', '')}`, {
+        ...event,
+        due_date: newDate,
+      });
+    }
+    // Update state
+    setEvents(prev => prev.map(e => e.id === event.id ? { ...e, date: newDate } : e));
+  };
+
   return (
     <div className="space-y-8">
       <div>
@@ -64,7 +86,7 @@ const CalendarPage = () => {
         {loading ? (
           <div className="flex items-center justify-center h-96 text-neutral-400 text-lg">Loading calendar...</div>
         ) : (
-          <Calendar events={events} />
+          <Calendar events={events} onEventMove={handleEventMove} />
         )}
       </div>
     </div>

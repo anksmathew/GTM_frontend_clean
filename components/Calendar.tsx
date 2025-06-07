@@ -1,4 +1,5 @@
 import React from 'react';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
 interface CalendarEvent {
   id: string | number;
@@ -10,6 +11,7 @@ interface CalendarEvent {
 
 interface CalendarProps {
   events: CalendarEvent[];
+  onEventMove?: (event: CalendarEvent, newDate: string) => void;
 }
 
 const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -47,7 +49,7 @@ const statusIcons: Record<string, string> = {
   'task': '✅',
 };
 
-const Calendar: React.FC<CalendarProps> = ({ events }) => {
+const Calendar: React.FC<CalendarProps> = ({ events, onEventMove }) => {
   const today = new Date();
   const [currentMonth, setCurrentMonth] = React.useState(today.getMonth());
   const [currentYear, setCurrentYear] = React.useState(today.getFullYear());
@@ -78,6 +80,19 @@ const Calendar: React.FC<CalendarProps> = ({ events }) => {
     }
   }, [popoverEvent]);
 
+  // Drag and drop handlers
+  function handleDragEnd(result: DropResult) {
+    console.log('Drag end result:', result); // Add logging
+    if (!result.destination) return;
+    const [destDate] = result.destination.droppableId.split(':');
+    const eventId = result.draggableId;
+    const event = events.find(e => e.id.toString() === eventId);
+    console.log('Moving event:', event, 'to date:', destDate); // Add logging
+    if (event && destDate !== event.date && onEventMove) {
+      onEventMove(event, destDate);
+    }
+  }
+
   // Generate calendar grid
   const calendarCells = [];
   for (let i = 0; i < firstDayOfWeek; i++) {
@@ -90,43 +105,49 @@ const Calendar: React.FC<CalendarProps> = ({ events }) => {
       currentMonth === today.getMonth() &&
       currentYear === today.getFullYear();
     calendarCells.push(
-      <div
-        key={dateStr}
-        className={`border border-gray-200 min-h-[90px] p-1 relative rounded-xl bg-white hover:bg-blue-50 transition group flex flex-col ${isToday ? 'ring-2 ring-blue-400 ring-offset-2' : ''}`}
-      >
-        <div className={`text-xs font-bold absolute top-2 left-3 ${isToday ? 'text-blue-600' : 'text-gray-500'}`}>{day}</div>
-        <div className="mt-6 flex flex-col gap-1">
-          {(eventsByDate[dateStr] || []).map(ev => {
-            const colorClass = ev.type === 'task'
-              ? statusColors[ev.status || 'task']
-              : statusColors[ev.status || 'Planned'] || 'bg-blue-100 text-blue-800 border-blue-200';
-            const icon = ev.type === 'task'
-              ? statusIcons[ev.status || 'task']
-              : statusIcons[ev.status || 'Planned'] || '🗓️';
-            return (
-              <button
-                key={ev.id}
-                className={`text-xs rounded-lg px-2 py-1 font-semibold shadow-sm flex items-center gap-1 border w-full text-left focus:outline-none focus:ring-2 focus:ring-blue-400 ${colorClass} group-hover:scale-[1.03] group-hover:shadow-md transition-transform duration-100`}
-                title={ev.title}
-                onClick={e => {
-                  const rect = (e.target as HTMLElement).getBoundingClientRect();
-                  setPopoverEvent(ev);
-                  setPopoverPosition({ x: rect.left + rect.width / 2, y: rect.top });
-                }}
-                tabIndex={0}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    setPopoverEvent(ev);
-                  }
-                }}
-              >
-                <span className="mr-1">{icon}</span>
-                <span className="truncate max-w-[90px]">{ev.title}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      <Droppable droppableId={`${dateStr}:cell`} key={dateStr}>
+        {(provided, snapshot) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            className={`border border-gray-200 min-h-[90px] p-1 relative rounded-xl bg-white hover:bg-blue-50 transition group flex flex-col ${isToday ? 'ring-2 ring-blue-400 ring-offset-2' : ''} ${snapshot.isDraggingOver ? 'bg-blue-100' : ''}`}
+          >
+            <div className={`text-xs font-bold absolute top-2 left-3 ${isToday ? 'text-blue-600' : 'text-gray-500'}`}>{day}</div>
+            <div className="mt-6 flex flex-col gap-1">
+              {(eventsByDate[dateStr] || []).map((ev, idx) => {
+                const colorClass = ev.type === 'task'
+                  ? statusColors[ev.status || 'task']
+                  : statusColors[ev.status || 'Planned'] || 'bg-blue-100 text-blue-800 border-blue-200';
+                const icon = ev.type === 'task'
+                  ? statusIcons[ev.status || 'task']
+                  : statusIcons[ev.status || 'Planned'] || '🗓️';
+                return (
+                  <Draggable draggableId={ev.id.toString()} index={idx} key={ev.id}>
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        className={`text-xs rounded-lg px-2 py-1 font-semibold shadow-sm flex items-center gap-1 border w-full text-left focus:outline-none focus:ring-2 focus:ring-blue-400 ${colorClass} group-hover:scale-[1.03] group-hover:shadow-md transition-transform duration-100 ${snapshot.isDragging ? 'ring-2 ring-blue-400 scale-105 z-10' : ''}`}
+                      >
+                        <span
+                          {...provided.dragHandleProps}
+                          className="cursor-grab active:cursor-grabbing mr-1 text-lg"
+                          title="Drag to move"
+                        >
+                          ≡
+                        </span>
+                        <span className="mr-1">{icon}</span>
+                        <span className="truncate max-w-[90px]">{ev.title}</span>
+                      </div>
+                    )}
+                  </Draggable>
+                );
+              })}
+              {provided.placeholder}
+            </div>
+          </div>
+        )}
+      </Droppable>
     );
   }
 
@@ -230,14 +251,16 @@ const Calendar: React.FC<CalendarProps> = ({ events }) => {
           &gt;
         </button>
       </div>
-      <div className="grid grid-cols-7 gap-1 mb-2 bg-gray-50 rounded-t-lg">
-        {daysOfWeek.map(d => (
-          <div key={d} className="text-xs font-bold text-center text-gray-500 py-2">{d}</div>
-        ))}
-      </div>
-      <div className="grid grid-cols-7 gap-1 bg-gray-50 p-2 rounded-b-lg min-h-[600px]">
-        {calendarCells}
-      </div>
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <div className="grid grid-cols-7 gap-1 mb-2 bg-gray-50 rounded-t-lg">
+          {daysOfWeek.map(d => (
+            <div key={d} className="text-xs font-bold text-center text-gray-500 py-2">{d}</div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7 gap-1 bg-gray-50 p-2 rounded-b-lg min-h-[600px]">
+          {calendarCells}
+        </div>
+      </DragDropContext>
       <div className="flex gap-4 mt-6 items-center">
         <span className="text-xs font-semibold text-gray-500">Legend:</span>
         <span className="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded border border-blue-200"><span>🚀</span>Campaign</span>
