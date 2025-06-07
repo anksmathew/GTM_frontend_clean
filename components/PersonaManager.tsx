@@ -4,6 +4,7 @@ import axios from "axios";
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import type { DraggableProvided, DroppableProvided } from '@hello-pangea/dnd';
 import PersonaDetailModal, { Persona as PersonaDetailType } from './PersonaDetailModal';
+import { useRouter } from 'next/navigation';
 
 // Persona data structure
 type Persona = PersonaDetailType;
@@ -63,6 +64,7 @@ const PersonaManager = () => {
   const [personaCampaigns, setPersonaCampaigns] = useState<{ [personaId: number]: Campaign[] }>({});
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedPersona, setSelectedPersona] = useState<PersonaDetailType | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     fetchPersonas();
@@ -298,19 +300,18 @@ const PersonaManager = () => {
               <div className="flex flex-wrap gap-2">
                 {typeof persona.id === 'number' && personaCampaigns[persona.id]?.length > 0 ? (
                   personaCampaigns[persona.id].map((campaign: any) => (
-                    <div
+                    <button
                       key={campaign.id}
-                      className="flex items-center bg-[#e5f0fa] rounded-full px-3 py-1 text-[#007acc] text-xs font-medium gap-2"
+                      className="flex items-center bg-[#e5f0fa] rounded-full px-3 py-1 text-[#007acc] text-xs font-medium gap-2 hover:bg-[#cbe6fd] transition-colors duration-150 focus:outline-none"
+                      onClick={e => {
+                        e.stopPropagation();
+                        router.push(`/products/${campaign.id}`);
+                      }}
+                      type="button"
                     >
                       <span>{campaign.name}</span>
-                      <button
-                        onClick={e => e.stopPropagation()}
-                        className="text-xs text-[#007acc] hover:underline font-medium px-0 py-0 bg-transparent border-none focus:outline-none"
-                        style={{marginLeft: 0}}
-                      >
-                        View →
-                      </button>
-                    </div>
+                      <span className="ml-1">View →</span>
+                    </button>
                   ))
                 ) : (
                   <p className="text-sm text-[#9ca3af] italic">No campaigns targeting this persona</p>
