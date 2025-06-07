@@ -85,11 +85,11 @@ export default function Sidebar() {
           </div>
         </nav>
       </div>
-      <div className="flex items-center gap-3 mt-10 p-3 rounded-lg bg-[#232946]">
+      <div className="flex items-center gap-3 mt-10 p-3 rounded-lg bg-[#232946] w-full">
         <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">AEM</div>
         <div>
           <div className="text-sm font-semibold text-white">Ankita Mathew</div>
-          <div className="text-xs text-[#A0AEC0]">ankitaemathew@gmail.com</div>
+          <div className="text-xs text-[#A0AEC0]">ankita@modemhive.com</div>
         </div>
       </div>
     </aside>
