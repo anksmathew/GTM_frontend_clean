@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const navItems = [
-  { section: 'Marketing', items: [
+  { section: 'Marketing (To be built next)', items: [
     { label: 'Forms', icon: <FaEnvelope />, active: false },
     { label: 'Emails', icon: <FaEnvelope />, active: false },
     { label: 'Social Media Ads', icon: <FaChartBar />, active: false },
@@ -27,9 +27,11 @@ export default function Sidebar() {
             <div className="text-xs uppercase text-[#7C8DB5] font-bold mb-2">Main</div>
             <ul className="space-y-1">
               <li>
-                <a href="#" className="flex items-center gap-3 px-3 py-2 rounded-lg text-white bg-[#232946] font-semibold">
-                  <FaTachometerAlt className="text-lg" /> Dashboard
-                </a>
+                <Link href="/" legacyBehavior>
+                  <a className={`flex items-center gap-3 px-3 py-2 rounded-lg font-semibold ${pathname === '/' ? 'bg-[#232946] text-white' : 'text-[#A0AEC0] hover:bg-[#232946] hover:text-white'}`}>
+                    <FaTachometerAlt className="text-lg" /> Dashboard
+                  </a>
+                </Link>
               </li>
               <li>
                 <Link href="/tasks" legacyBehavior>
@@ -80,10 +82,10 @@ export default function Sidebar() {
         </nav>
       </div>
       <div className="flex items-center gap-3 mt-10 p-3 rounded-lg bg-[#232946]">
-        <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">J</div>
+        <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">AEM</div>
         <div>
-          <div className="text-sm font-semibold text-white">John Marpaung</div>
-          <div className="text-xs text-[#A0AEC0]">john@gmail.com</div>
+          <div className="text-sm font-semibold text-white">Ankita Mathew</div>
+          <div className="text-xs text-[#A0AEC0]">ankitaemathew@gmail.com</div>
         </div>
       </div>
     </aside>

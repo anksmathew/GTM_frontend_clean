@@ -24,11 +24,15 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave }) => {
     campaignId: ''
   });
   const [error, setError] = useState('');
+  const [showNewCampaignInput, setShowNewCampaignInput] = useState(false);
+  const [newCampaignName, setNewCampaignName] = useState("");
+  const [creatingCampaign, setCreatingCampaign] = useState(false);
+  const [newCampaignError, setNewCampaignError] = useState("");
 
   useEffect(() => {
     if (isOpen) {
       axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/campaigns`)
-        .then(res => setCampaigns(res.data))
+        .then(res => setCampaigns(Array.isArray(res.data) ? res.data : []))
         .catch(() => setCampaigns([]));
     }
   }, [isOpen]);
@@ -36,6 +40,44 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave }) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleCampaignChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (e.target.value === "__create_new__") {
+      setShowNewCampaignInput(true);
+      setForm(prev => ({ ...prev, campaignId: "" }));
+    } else {
+      setShowNewCampaignInput(false);
+      setForm(prev => ({ ...prev, campaignId: e.target.value }));
+    }
+  };
+
+  const handleCreateCampaign = async () => {
+    if (!newCampaignName.trim()) {
+      setNewCampaignError("Campaign name is required");
+      return;
+    }
+    setCreatingCampaign(true);
+    setNewCampaignError("");
+    try {
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/campaigns`, {
+        name: newCampaignName,
+        description: '',
+        launch_date: '',
+        status: 'Planned',
+        budget: '',
+        team: ''
+      });
+      const created = res.data;
+      setCampaigns(prev => [...prev, created]);
+      setForm(prev => ({ ...prev, campaignId: created.id.toString() }));
+      setShowNewCampaignInput(false);
+      setNewCampaignName("");
+    } catch (err) {
+      setNewCampaignError("Failed to create campaign");
+    } finally {
+      setCreatingCampaign(false);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -121,15 +163,47 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave }) => {
             <select
               name="campaignId"
               value={form.campaignId}
-              onChange={handleInputChange}
+              onChange={handleCampaignChange}
               className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
               required
             >
               <option value="">Select Campaign</option>
-              {campaigns.map(c => (
+              {Array.isArray(campaigns) && campaigns.map(c => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
+              <option value="__create_new__">Create new campaign...</option>
             </select>
+            {showNewCampaignInput && (
+              <div className="mt-2 flex flex-col gap-2">
+                <input
+                  type="text"
+                  placeholder="New campaign name"
+                  value={newCampaignName}
+                  onChange={e => setNewCampaignName(e.target.value)}
+                  className="w-full px-4 py-2 border border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
+                  disabled={creatingCampaign}
+                />
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleCreateCampaign}
+                    className="px-3 py-1 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
+                    disabled={creatingCampaign}
+                  >
+                    {creatingCampaign ? 'Creating...' : 'Add Campaign'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setShowNewCampaignInput(false); setNewCampaignName(""); setNewCampaignError(""); }}
+                    className="px-3 py-1 bg-neutral-100 text-neutral-700 rounded-lg hover:bg-neutral-200 font-medium"
+                    disabled={creatingCampaign}
+                  >
+                    Cancel
+                  </button>
+                </div>
+                {newCampaignError && <div className="text-red-600 text-sm">{newCampaignError}</div>}
+              </div>
+            )}
           </div>
           <div className="flex justify-end gap-2 mt-6">
             <button

@@ -66,11 +66,6 @@ const TasksPage = () => {
           onSave={handleSaveTask}
         />
       </div>
-      {/* Task Details Panel */}
-      <div className="w-1/3 p-6 bg-white rounded-r-2xl shadow-lg border-l border-gray-200">
-        <h2 className="text-xl font-semibold mb-2">Task Details</h2>
-        {/* TODO: Task details content goes here */}
-      </div>
     </div>
   );
 };
