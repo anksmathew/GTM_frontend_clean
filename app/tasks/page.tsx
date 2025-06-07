@@ -75,12 +75,15 @@ const TasksPage = () => {
     try {
       const taskPayload = {
         ...taskData,
-        due_date: taskData.due_date || null,
+        dueDate: taskData.due_date || null,
         campaignIds: taskData.campaignIds
       };
 
       if (editingTask) {
-        await axios.put(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/tasks/${editingTask.id}`, taskPayload);
+        await axios.put(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/tasks/${editingTask.id}`, {
+          ...taskPayload,
+          id: editingTask.id
+        });
       } else {
         await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/tasks`, taskPayload);
       }

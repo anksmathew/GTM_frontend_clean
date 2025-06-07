@@ -202,25 +202,25 @@ const ProductPage = ({ params }: { params: { id: string } }) => {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 p-6">
+    <div className="min-h-screen bg-[#F7F8FA] p-6">
       <div className="max-w-5xl mx-auto">
         <div className="mb-6 flex justify-between items-center">
           <button 
             onClick={() => router.back()}
-            className="px-4 py-2 bg-neutral-100 rounded-lg hover:bg-neutral-200 text-neutral-700 font-medium"
+            className="px-4 py-2 bg-white border border-neutral-200 rounded-lg hover:bg-neutral-100 text-neutral-700 font-semibold shadow-sm"
           >
             ← Back to Campaigns
           </button>
           <div className="flex gap-2">
             <button
               onClick={handleEditClick}
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
+              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-semibold shadow"
             >
               Edit Campaign
             </button>
             <button
               onClick={() => setShowDeleteModal(true)}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold shadow"
             >
               Delete Campaign
             </button>
@@ -263,63 +263,66 @@ const ProductPage = ({ params }: { params: { id: string } }) => {
             {editMode ? (
               <form className="space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-600 mb-1">Name</label>
-                  <input name="name" value={editProduct.name} onChange={handleEditInputChange} className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400" />
+                  <label className="block text-sm font-medium text-neutral-500 mb-1">Name</label>
+                  <input name="name" value={editProduct.name} onChange={handleEditInputChange} className="w-full px-4 py-2 border border-neutral-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-400 focus:border-primary-400" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-600 mb-1">Description</label>
-                  <textarea name="description" value={editProduct.description} onChange={handleEditInputChange} className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400" />
+                  <label className="block text-sm font-medium text-neutral-500 mb-1">Description</label>
+                  <textarea name="description" value={editProduct.description} onChange={handleEditInputChange} className="w-full px-4 py-2 border border-neutral-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-400 focus:border-primary-400" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-600 mb-1">Launch Date</label>
-                  <input name="launch_date" type="date" value={editProduct.launch_date} onChange={handleEditInputChange} className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400" />
+                  <label className="block text-sm font-medium text-neutral-500 mb-1">Launch Date</label>
+                  <input name="launch_date" type="date" value={editProduct.launch_date} onChange={handleEditInputChange} className="w-full px-4 py-2 border border-neutral-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-400 focus:border-primary-400" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-600 mb-1">Status</label>
-                  <select name="status" value={editProduct.status} onChange={handleEditInputChange} className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400">
+                  <label className="block text-sm font-medium text-neutral-500 mb-1">Status</label>
+                  <select name="status" value={editProduct.status} onChange={handleEditInputChange} className="w-full px-4 py-2 border border-neutral-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-400 focus:border-primary-400">
                     {statusOptions.map(option => <option key={option} value={option}>{option}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-600 mb-1">Budget</label>
-                  <input name="budget" type="number" value={editProduct.budget} onChange={handleEditInputChange} className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400" />
+                  <label className="block text-sm font-medium text-neutral-500 mb-1">Budget</label>
+                  <input name="budget" type="number" value={editProduct.budget} onChange={handleEditInputChange} className="w-full px-4 py-2 border border-neutral-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-400 focus:border-primary-400" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-600 mb-1">Team</label>
-                  <select name="team" value={editProduct.team} onChange={handleEditInputChange} className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400">
+                  <label className="block text-sm font-medium text-neutral-500 mb-1">Team</label>
+                  <select name="team" value={editProduct.team} onChange={handleEditInputChange} className="w-full px-4 py-2 border border-neutral-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-400 focus:border-primary-400">
                     <option value="">Select Team</option>
                     {teamOptions.map(option => <option key={option} value={option}>{option}</option>)}
                   </select>
                 </div>
                 <div className="flex gap-2 justify-end mt-6">
-                  <button type="button" onClick={handleCancelEdit} className="btn btn-secondary">Cancel</button>
-                  <button type="button" onClick={handleSaveEdit} className="btn btn-primary">Save</button>
+                  <button type="button" onClick={handleCancelEdit} className="px-4 py-2 bg-white border border-neutral-200 rounded-lg hover:bg-neutral-100 text-neutral-700 font-semibold shadow-sm">Cancel</button>
+                  <button type="button" onClick={handleSaveEdit} className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-semibold shadow">Save</button>
                 </div>
               </form>
             ) : (
               <div className="space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-600 mb-1">Description</label>
+                  <label className="block text-sm font-medium text-neutral-500 mb-1">Description</label>
                   <p className="text-neutral-900 bg-neutral-50 rounded-lg px-3 py-2">{product.description}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-600 mb-1">Launch Date</label>
+                  <label className="block text-sm font-medium text-neutral-500 mb-1">Launch Date</label>
                   <p className="text-neutral-900 bg-neutral-50 rounded-lg px-3 py-2">{product.launch_date ? new Date(product.launch_date).toLocaleDateString() : ''}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-600 mb-1">Status</label>
-                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${product.status === 'Planned' ? 'bg-primary-100 text-primary-700' : product.status === 'In Progress' ? 'bg-warning-100 text-warning-700' : product.status === 'Launched' ? 'bg-success-100 text-success-700' : 'bg-error-100 text-error-700'}`}>{product.status}</span>
+                  <label className="block text-sm font-medium text-neutral-500 mb-1">Status</label>
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold 
+                    ${product.status === 'Planned' ? 'bg-primary-100 text-primary-700' : 
+                      product.status === 'In Progress' ? 'bg-yellow-100 text-yellow-700' : 
+                      product.status === 'Launched' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{product.status}</span>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-600 mb-1">Budget</label>
+                  <label className="block text-sm font-medium text-neutral-500 mb-1">Budget</label>
                   <p className="text-neutral-900 bg-neutral-50 rounded-lg px-3 py-2">${product.budget?.toLocaleString()}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-600 mb-1">Team</label>
+                  <label className="block text-sm font-medium text-neutral-500 mb-1">Team</label>
                   <p className="text-neutral-900 bg-neutral-50 rounded-lg px-3 py-2">{product.team}</p>
                 </div>
                 <div className="flex gap-2 justify-end mt-6">
-                  <button onClick={handleEditClick} className="btn btn-primary">Edit</button>
+                  <button onClick={handleEditClick} className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-semibold shadow">Edit</button>
                 </div>
               </div>
             )}
@@ -328,7 +331,7 @@ const ProductPage = ({ params }: { params: { id: string } }) => {
             <h2 className="text-xl font-semibold text-neutral-900 mb-4">Marketing Channels</h2>
             <div className="mb-6 flex flex-wrap gap-2 items-center">
               <select
-                className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
+                className="px-4 py-2 border border-neutral-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
                 value={selectedChannelId}
                 onChange={e => setSelectedChannelId(Number(e.target.value))}
               >
@@ -337,8 +340,8 @@ const ProductPage = ({ params }: { params: { id: string } }) => {
                   <option key={ch.id} value={ch.id}>{ch.name}</option>
                 ))}
               </select>
-              <button onClick={handleAssignChannel} className="btn btn-primary" disabled={!selectedChannelId}>Assign</button>
-              <button onClick={() => setShowAddChannelModal(true)} className="btn btn-secondary">Add Channel</button>
+              <button onClick={handleAssignChannel} className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-semibold shadow" disabled={!selectedChannelId}>Assign</button>
+              <button onClick={() => setShowAddChannelModal(true)} className="px-4 py-2 bg-white border border-neutral-200 rounded-lg hover:bg-neutral-100 text-neutral-700 font-semibold shadow-sm">Add Channel</button>
             </div>
             {channels.length > 0 ? (
               <div className="space-y-4">
