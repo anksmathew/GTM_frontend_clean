@@ -726,13 +726,13 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
                         <button
                           type="button"
                           onClick={() => setShowEditGraph(false)}
-                          className="bg-gray-400 text-white px-4 py-2 rounded font-semibold hover:bg-gray-500"
+                          className="bg-gray-400 text-neutral-900 px-4 py-2 rounded font-semibold hover:bg-gray-500"
                         >
                           Cancel
                         </button>
                         <button
                           type="submit"
-                          className="bg-blue-600 text-white px-4 py-2 rounded font-semibold hover:bg-blue-700"
+                          className="bg-blue-600 text-neutral-900 px-4 py-2 rounded font-semibold hover:bg-blue-700"
                         >
                           Save
                         </button>
@@ -945,13 +945,13 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
                         <button
                           type="button"
                           onClick={() => setShowEditSpend(false)}
-                          className="btn btn-secondary"
+                          className="bg-gray-400 text-neutral-900 px-4 py-2 rounded font-semibold hover:bg-gray-500"
                         >
                           Cancel
                         </button>
                         <button
                           type="submit"
-                          className="btn btn-primary"
+                          className="bg-blue-600 text-neutral-900 px-4 py-2 rounded font-semibold hover:bg-blue-700"
                         >
                           Save
                         </button>
@@ -970,7 +970,7 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
                 <div className="flex justify-between items-center mb-4">
                   <h4 className="text-sm font-semibold text-neutral-900">Active Campaigns</h4>
                   <button
-                    className="btn btn-primary"
+                    className="btn btn-primary text-neutral-900"
                     onClick={() => setShowAddCampaignModal(true)}
                   >
                     Add
@@ -1035,13 +1035,13 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
                     <h2 className="text-xl font-bold mb-4">Add Campaign</h2>
                     <div className="flex gap-2 mb-4">
                       <button
-                        className={`px-3 py-1 rounded font-semibold border ${addMode === 'select' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+                        className={`px-3 py-1 rounded font-semibold border ${addMode === 'select' ? 'bg-blue-600 text-neutral-900' : 'bg-gray-100 text-gray-700'}`}
                         onClick={() => { setAddMode('select'); setShowAddCampaignModal(true); }}
                       >
                         Select Existing
                       </button>
                       <button
-                        className={`px-3 py-1 rounded font-semibold border ${addMode === 'create' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+                        className={`px-3 py-1 rounded font-semibold border ${addMode === 'create' ? 'bg-blue-600 text-neutral-900' : 'bg-gray-100 text-gray-700'}`}
                         onClick={() => { setAddMode('create'); setShowAddCampaignModal(true); }}
                       >
                         Create New

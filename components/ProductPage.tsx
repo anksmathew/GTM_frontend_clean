@@ -343,27 +343,30 @@ const ProductPage = ({ params }: { params: { id: string } }) => {
             {channels.length > 0 ? (
               <div className="space-y-4">
                 {channels.map((channel) => (
-                  <div key={channel.id} className="border-b border-neutral-100 pb-4 last:border-b-0">
-                    <h3 className="font-medium text-white">{channel.name}</h3>
+                  <div key={channel.id} className="border border-neutral-200 bg-neutral-50 rounded-lg p-4 mb-2 shadow-sm">
+                    <h3 className="font-semibold text-neutral-900 text-lg mb-1">{channel.name}</h3>
                     <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
                       {channel.type && (
                         <div>
-                          <span className="text-[#9ca3af]">Type:</span> {channel.type}
+                          <span className="text-neutral-500 font-medium">Type:</span> <span className="text-neutral-900">{channel.type}</span>
                         </div>
                       )}
                       {channel.status && (
                         <div>
-                          <span className="text-[#9ca3af]">Status:</span> <span className={`px-2 py-1 text-xs font-medium rounded-full ${channel.status.toLowerCase() === 'active' ? 'bg-[#22c55e]/20 text-[#22c55e]' : channel.status.toLowerCase() === 'paused' ? 'bg-[#f59e0b]/20 text-[#f59e0b]' : channel.status.toLowerCase() === 'inactive' ? 'bg-[#64748b]/20 text-[#64748b]' : 'bg-[#ef4444]/20 text-[#ef4444]'}`}>{channel.status.charAt(0).toUpperCase() + channel.status.slice(1)}</span>
+                          <span className="text-neutral-500 font-medium">Status:</span> <span className={`px-2 py-1 text-xs font-semibold rounded-full 
+                            ${channel.status.toLowerCase() === 'active' ? 'bg-green-100 text-green-700' : 
+                              channel.status.toLowerCase() === 'paused' ? 'bg-yellow-100 text-yellow-700' : 
+                              channel.status.toLowerCase() === 'inactive' ? 'bg-gray-200 text-gray-700' : 'bg-red-100 text-red-700'}`}>{channel.status.charAt(0).toUpperCase() + channel.status.slice(1)}</span>
                         </div>
                       )}
-                      {channel.budget && (
+                      {channel.budget !== undefined && (
                         <div>
-                          <span className="text-[#9ca3af]">Budget:</span> ${channel.budget.toLocaleString()}
+                          <span className="text-neutral-500 font-medium">Budget:</span> <span className="text-neutral-900">${channel.budget.toLocaleString()}</span>
                         </div>
                       )}
-                      {channel.spend && (
+                      {channel.spend !== undefined && (
                         <div>
-                          <span className="text-[#9ca3af]">Spend:</span> ${channel.spend.toLocaleString()}
+                          <span className="text-neutral-500 font-medium">Spend:</span> <span className="text-neutral-900">${channel.spend.toLocaleString()}</span>
                         </div>
                       )}
                     </div>
