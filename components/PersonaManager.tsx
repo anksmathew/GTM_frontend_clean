@@ -229,7 +229,11 @@ const PersonaManager = () => {
         {filteredPersonas.map((persona) => (
           <div
             key={persona.id}
-            className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow hover:bg-[#F3F4F6] transition-colors duration-150"
+            className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow hover:bg-[#F3F4F6] transition-colors duration-150 cursor-pointer"
+            role="button"
+            tabIndex={0}
+            onClick={() => handleViewDetails(persona)}
+            onKeyPress={e => { if (e.key === 'Enter' || e.key === ' ') handleViewDetails(persona); }}
           >
             <div className="flex items-start space-x-4 mb-4">
               <div className="text-3xl text-green-500">{getAvatarEmoji(persona.gender)}</div>
@@ -280,7 +284,7 @@ const PersonaManager = () => {
                     >
                       <span className="text-sm text-[#e5e5e5]">{campaign.name}</span>
                       <button
-                        onClick={() => {/* Navigate to campaign */}}
+                        onClick={e => e.stopPropagation()}
                         className="text-xs text-[#007acc] hover:text-[#0062a3] font-medium"
                       >
                         View →
@@ -296,13 +300,13 @@ const PersonaManager = () => {
             <div className="flex justify-end space-x-2 mt-6">
               <button
                 className="btn btn-secondary"
-                onClick={() => openModal(persona)}
+                onClick={e => { e.stopPropagation(); openModal(persona); }}
               >
                 Edit
               </button>
               <button
                 className="text-green-600 hover:text-green-800 font-semibold text-sm"
-                onClick={() => handleViewDetails(persona)}
+                onClick={e => { e.stopPropagation(); handleViewDetails(persona); }}
               >
                 View Details →
               </button>
