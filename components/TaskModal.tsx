@@ -9,29 +9,31 @@ interface Campaign {
 }
 
 interface Task {
+  id?: number;
   title: string;
   description: string;
-  dueDate: string;
+  due_date: string;
   status: string;
-  campaignId: string;
+  campaignIds: string[];
 }
 
 interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (task: Task) => void;
+  task?: Task | null;
 }
 
 const statusOptions = ['To-do', 'In Progress', 'Done'];
 
-const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave }) => {
+const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, task }) => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [form, setForm] = useState<Task>({
     title: '',
     description: '',
-    dueDate: '',
+    due_date: '',
     status: statusOptions[0],
-    campaignId: ''
+    campaignIds: []
   });
   const [error, setError] = useState('');
   const [showNewCampaignInput, setShowNewCampaignInput] = useState(false);
@@ -53,20 +55,34 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave }) => {
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    if (task) {
+      setForm({
+        title: task.title,
+        description: task.description,
+        due_date: task.due_date,
+        status: task.status,
+        campaignIds: task.campaignIds
+      });
+    } else {
+      setForm({
+        title: '',
+        description: '',
+        due_date: '',
+        status: statusOptions[0],
+        campaignIds: []
+      });
+    }
+  }, [task]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
   };
 
   const handleCampaignChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    if (value === "__create_new__") {
-      setShowNewCampaignInput(true);
-      setForm(prev => ({ ...prev, campaignId: "" }));
-    } else {
-      setShowNewCampaignInput(false);
-      setForm(prev => ({ ...prev, campaignId: value }));
-    }
+    const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+    setForm(prev => ({ ...prev, campaignIds: selectedOptions }));
   };
 
   const handleCreateCampaign = async () => {
@@ -87,7 +103,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave }) => {
       });
       const created = res.data;
       setCampaigns(prev => [...prev, created]);
-      setForm(prev => ({ ...prev, campaignId: created.id.toString() }));
+      setForm(prev => ({ ...prev, campaignIds: [...prev.campaignIds, created.id.toString()] }));
       setShowNewCampaignInput(false);
       setNewCampaignName("");
     } catch (err) {
@@ -99,14 +115,13 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.title.trim() || !form.campaignId) {
-      setError('Title and Campaign are required');
+    if (!form.title.trim() || form.campaignIds.length === 0) {
+      setError('Title and at least one Campaign are required');
       return;
     }
     setError('');
     onSave(form);
     onClose();
-    setForm({ title: '', description: '', dueDate: '', status: statusOptions[0], campaignId: '' });
   };
 
   if (!isOpen) return null;
@@ -121,7 +136,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave }) => {
         >
           ×
         </button>
-        <h2 className="text-2xl font-bold text-neutral-900 mb-6">Create Task</h2>
+        <h2 className="text-2xl font-bold text-neutral-900 mb-6">{task ? 'Edit Task' : 'Create Task'}</h2>
         {error && (
           <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">{error}</div>
         )}
@@ -150,8 +165,8 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave }) => {
             <label className="block text-sm font-medium text-neutral-600 mb-1">Due Date</label>
             <input
               type="date"
-              name="dueDate"
-              value={form.dueDate}
+              name="due_date"
+              value={form.due_date}
               onChange={handleInputChange}
               className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
             />
@@ -170,21 +185,29 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave }) => {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-neutral-600 mb-1">Campaign *</label>
+            <label className="block text-sm font-medium text-neutral-600 mb-1">Campaigns *</label>
             <select
-              name="campaignId"
-              value={form.campaignId}
+              name="campaignIds"
+              value={form.campaignIds}
               onChange={handleCampaignChange}
               className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
               required
               disabled={loading}
+              multiple
+              size={4}
             >
-              <option value="">Select Campaign</option>
               {campaigns.map(c => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
-              <option value="__create_new__">Create new campaign...</option>
             </select>
+            <p className="mt-1 text-xs text-neutral-500">Hold Ctrl/Cmd to select multiple campaigns</p>
+            <button
+              type="button"
+              onClick={() => setShowNewCampaignInput(true)}
+              className="mt-2 text-sm text-primary-600 hover:text-primary-700"
+            >
+              + Create new campaign
+            </button>
             {showNewCampaignInput && (
               <div className="mt-2 flex flex-col gap-2">
                 <input
@@ -229,7 +252,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave }) => {
               type="submit"
               className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
             >
-              Create Task
+              {task ? 'Save Changes' : 'Create Task'}
             </button>
           </div>
         </form>

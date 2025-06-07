@@ -6,24 +6,52 @@ import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea
 
 const statusOptions = ['To-do', 'In Progress', 'Done'];
 
+interface Campaign {
+  id: number;
+  name: string;
+}
+
 interface Task {
   id: number;
   title: string;
   description: string;
   due_date: string;
   status: string;
-  campaign_id: number;
-  created_at: string;
-  updated_at: string;
+  campaignIds: string[];
+}
+
+interface TaskModalData {
+  id?: number;
+  title: string;
+  description: string;
+  due_date: string;
+  status: string;
+  campaignIds: string[];
 }
 
 const TasksPage = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [campaigns, setCampaigns] = useState<Record<string, Campaign>>({});
   const [modalOpen, setModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<TaskModalData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [draggingId, setDraggingId] = useState<string | null>(null);
+
+  const fetchCampaigns = async () => {
+    try {
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/campaigns`);
+      const campaignsData = Array.isArray(res.data) ? res.data : (res.data.campaigns || []);
+      const campaignsMap = campaignsData.reduce((acc: Record<string, Campaign>, campaign: Campaign) => {
+        acc[campaign.id.toString()] = campaign;
+        return acc;
+      }, {});
+      setCampaigns(campaignsMap);
+    } catch (err) {
+      console.error('Error fetching campaigns:', err);
+    }
+  };
 
   const fetchTasks = async () => {
     setLoading(true);
@@ -40,15 +68,27 @@ const TasksPage = () => {
 
   useEffect(() => {
     fetchTasks();
+    fetchCampaigns();
   }, []);
 
-  const handleSaveTask = async (task: any) => {
+  const handleSaveTask = async (taskData: TaskModalData) => {
     try {
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/tasks`, task);
+      const taskPayload = {
+        ...taskData,
+        due_date: taskData.due_date || null,
+        campaignIds: taskData.campaignIds
+      };
+
+      if (editingTask) {
+        await axios.put(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/tasks/${editingTask.id}`, taskPayload);
+      } else {
+        await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/tasks`, taskPayload);
+      }
       fetchTasks();
-      setError('');
-    } catch (err) {
-      setError('Failed to create task');
+      setModalOpen(false);
+      setEditingTask(null);
+    } catch (error) {
+      console.error('Error saving task:', error);
     }
   };
 
@@ -60,6 +100,23 @@ const TasksPage = () => {
     } catch (err) {
       setError('Failed to delete task');
     }
+  };
+
+  const handleEditTask = (task: Task) => {
+    setEditingTask({
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      due_date: task.due_date,
+      status: task.status,
+      campaignIds: task.campaignIds
+    });
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setEditingTask(null);
   };
 
   const onDragEnd = async (result: DropResult) => {
@@ -98,10 +155,15 @@ const TasksPage = () => {
   };
 
   // Filter tasks by search
-  const filteredTasks = tasks.filter(task => 
-    task.title.toLowerCase().includes(search.toLowerCase()) ||
-    task.description.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredTasks = tasks.filter(task => {
+    const searchLower = search.toLowerCase();
+    const taskText = `${task.title} ${task.description}`.toLowerCase();
+    const campaignNames = task.campaignIds
+      .map(id => campaigns[id]?.name || '')
+      .join(' ')
+      .toLowerCase();
+    return taskText.includes(searchLower) || campaignNames.includes(searchLower);
+  });
 
   // Group tasks by status
   const groupedTasks = filteredTasks.reduce((acc, task) => {
@@ -140,7 +202,10 @@ const TasksPage = () => {
           </div>
           <button 
             className="bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg px-5 py-2 text-sm shadow"
-            onClick={() => setModalOpen(true)}
+            onClick={() => {
+              setEditingTask(null);
+              setModalOpen(true);
+            }}
           >
             + New Task
           </button>
@@ -169,7 +234,10 @@ const TasksPage = () => {
                 </div>
                 <button
                   className="w-7 h-7 flex items-center justify-center rounded-full bg-white border border-gray-200 text-gray-400 hover:text-green-600 hover:border-green-200 transition"
-                  onClick={() => setModalOpen(true)}
+                  onClick={() => {
+                    setEditingTask(null);
+                    setModalOpen(true);
+                  }}
                 >
                   <span className="text-xl leading-none">+</span>
                 </button>
@@ -189,28 +257,45 @@ const TasksPage = () => {
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
-                            className={`bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow duration-150 flex flex-col gap-2
+                            className={`bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow duration-150 flex flex-col gap-2 cursor-pointer
                               ${snapshot.isDragging ? 'ring-2 ring-green-400 shadow-lg opacity-90 scale-[1.03] z-20' : ''}
                               ${draggingId === String(task.id) ? 'border-green-400' : ''}
                             `}
+                            onClick={() => handleEditTask(task)}
                           >
-                            <div className="flex items-center gap-3 mb-1">
-                              <div>
-                                <h4 className="font-semibold text-gray-900 leading-tight">{task.title}</h4>
-                                <p className="text-xs text-gray-500">{task.description}</p>
-                              </div>
-                            </div>
-                            <div className="flex flex-wrap gap-x-8 gap-y-1 text-xs text-gray-600">
-                              <div>
-                                <span className="block font-medium text-gray-400">Due Date</span>
-                                <span className="font-semibold text-gray-700">
-                                  {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No due date'}
-                                </span>
-                              </div>
+                            <div className="flex flex-col gap-2">
+                              <h3 className="font-medium text-neutral-900">{task.title}</h3>
+                              <p className="text-sm text-neutral-600 line-clamp-2">{task.description}</p>
+                              {task.due_date && (
+                                <p className="text-sm text-neutral-500">
+                                  Due: {new Date(task.due_date).toLocaleDateString()}
+                                </p>
+                              )}
+                              {task.campaignIds.length > 0 && (
+                                <div className="mt-2">
+                                  <span className="block text-xs font-semibold text-neutral-500 mb-1">Associated Campaigns</span>
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {task.campaignIds.map(campaignId => {
+                                      const campaign = campaigns[campaignId];
+                                      return campaign ? (
+                                        <span
+                                          key={campaignId}
+                                          className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary-100 text-primary-800"
+                                        >
+                                          {campaign.name}
+                                        </span>
+                                      ) : null;
+                                    })}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                             <div className="mt-2 flex justify-end">
                               <button
-                                onClick={() => handleDeleteTask(task.id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteTask(task.id);
+                                }}
                                 className="text-red-600 hover:text-red-800 text-xs"
                               >
                                 Delete
@@ -231,8 +316,9 @@ const TasksPage = () => {
 
       <TaskModal
         isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={handleCloseModal}
         onSave={handleSaveTask}
+        task={editingTask}
       />
     </div>
   );
