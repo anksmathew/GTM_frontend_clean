@@ -7,11 +7,13 @@ interface CalendarEvent {
   date: string; // ISO date string
   type: 'campaign' | 'task';
   status?: string;
+  description?: string;
 }
 
 interface CalendarProps {
   events: CalendarEvent[];
   onEventMove?: (event: CalendarEvent, newDate: string) => void;
+  onTaskClick?: (event: CalendarEvent) => void;
 }
 
 const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -49,7 +51,7 @@ const statusIcons: Record<string, string> = {
   'task': '❗',
 };
 
-const Calendar: React.FC<CalendarProps> = ({ events, onEventMove }) => {
+const Calendar: React.FC<CalendarProps> = ({ events, onEventMove, onTaskClick }) => {
   const today = new Date();
   const [currentMonth, setCurrentMonth] = React.useState(today.getMonth());
   const [currentYear, setCurrentYear] = React.useState(today.getFullYear());
@@ -59,6 +61,8 @@ const Calendar: React.FC<CalendarProps> = ({ events, onEventMove }) => {
   const pressTimer = React.useRef<NodeJS.Timeout | null>(null);
   const LONG_PRESS_DURATION = 500; // 500ms for long press
   const dragHandleRef = React.useRef<HTMLDivElement>(null);
+  const [taskPopoverEvent, setTaskPopoverEvent] = React.useState<CalendarEvent | null>(null);
+  const [taskPopoverPosition, setTaskPopoverPosition] = React.useState<{ x: number; y: number } | null>(null);
 
   const daysInMonth = getDaysInMonth(currentYear, currentMonth);
   const firstDayOfWeek = getFirstDayOfWeek(currentYear, currentMonth);
@@ -83,6 +87,20 @@ const Calendar: React.FC<CalendarProps> = ({ events, onEventMove }) => {
       return () => window.removeEventListener('mousedown', handleClick);
     }
   }, [popoverEvent]);
+
+  // Popover close on click outside (add for task popover)
+  React.useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if ((e.target as HTMLElement).closest('.calendar-task-popover') === null) {
+        setTaskPopoverEvent(null);
+        setTaskPopoverPosition(null);
+      }
+    }
+    if (taskPopoverEvent) {
+      window.addEventListener('mousedown', handleClick);
+      return () => window.removeEventListener('mousedown', handleClick);
+    }
+  }, [taskPopoverEvent]);
 
   // Drag and drop handlers
   function handleDragEnd(result: DropResult) {
@@ -181,7 +199,22 @@ const Calendar: React.FC<CalendarProps> = ({ events, onEventMove }) => {
                         tabIndex={0}
                         onKeyDown={e => {
                           if (e.key === 'Enter' || e.key === ' ') {
-                            setPopoverEvent(ev);
+                            if (ev.type === 'task') {
+                              // Open task popover
+                              setTaskPopoverEvent(ev);
+                              const rect = (e.target as HTMLElement).getBoundingClientRect();
+                              setTaskPopoverPosition({ x: rect.left + rect.width / 2, y: rect.top });
+                            } else {
+                              setPopoverEvent(ev);
+                            }
+                          }
+                        }}
+                        onClick={(e) => {
+                          if (ev.type === 'task') {
+                            // Open task popover
+                            const rect = (e.target as HTMLElement).getBoundingClientRect();
+                            setTaskPopoverEvent(ev);
+                            setTaskPopoverPosition({ x: rect.left + rect.width / 2, y: rect.top });
                           }
                         }}
                       >
@@ -192,7 +225,7 @@ const Calendar: React.FC<CalendarProps> = ({ events, onEventMove }) => {
                           style={{ pointerEvents: isDragging ? 'auto' : 'none' }}
                         />
                         <span className="mr-1">{icon}</span>
-                        <span className="truncate max-w-[90px]">{ev.title}</span>
+                        <span className={ev.type === 'task' ? 'truncate' : 'truncate max-w-[90px]'}>{ev.title}</span>
                       </button>
                     )}
                   </Draggable>
@@ -271,6 +304,58 @@ const Calendar: React.FC<CalendarProps> = ({ events, onEventMove }) => {
     </div>
   ) : null;
 
+  // Task popover rendering
+  const taskPopover = taskPopoverEvent && taskPopoverPosition ? (
+    <div
+      className="calendar-task-popover fixed z-50 min-w-[320px] max-w-sm animate-fade-in shadow-xl rounded-2xl"
+      style={{ left: Math.max(16, taskPopoverPosition.x - 160), top: taskPopoverPosition.y - 10 }}
+      tabIndex={-1}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div className="rounded-t-2xl flex items-center gap-3 px-5 py-4 bg-gray-50 border-b border-gray-200">
+        <div className="rounded-full w-12 h-12 flex items-center justify-center text-3xl shadow bg-gray-200 text-gray-700">
+          {statusIcons[taskPopoverEvent.status || 'task']}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-extrabold text-lg text-[#181C2A] truncate" title={taskPopoverEvent.title}>{taskPopoverEvent.title}</div>
+          {taskPopoverEvent.status && (
+            <span className={`inline-block mt-1 px-2 py-0.5 rounded text-xs font-semibold ${statusColors[taskPopoverEvent.status] || 'bg-gray-100 text-gray-700 border-gray-200'}`}>{taskPopoverEvent.status}</span>
+          )}
+        </div>
+        <button
+          className="ml-2 text-gray-400 hover:text-blue-600 text-2xl focus:outline-none"
+          onClick={() => {
+            setTaskPopoverEvent(null);
+            setTaskPopoverPosition(null);
+          }}
+          aria-label="Close"
+        >
+          ×
+        </button>
+      </div>
+      <div className="bg-white rounded-b-2xl p-5 flex flex-col gap-3">
+        <div className="flex flex-col gap-1 text-sm">
+          <div><span className="font-semibold">Type:</span> Task</div>
+          <div><span className="font-semibold">Date:</span> {taskPopoverEvent.date}</div>
+          {taskPopoverEvent.description && (
+            <div><span className="font-semibold">Description:</span> <span className="whitespace-pre-line break-words">{taskPopoverEvent.description}</span></div>
+          )}
+        </div>
+        <button
+          className="mt-2 w-full text-center text-base text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg shadow btn btn-primary font-semibold transition"
+          onClick={() => {
+            if (onTaskClick) onTaskClick(taskPopoverEvent);
+            setTaskPopoverEvent(null);
+            setTaskPopoverPosition(null);
+          }}
+        >
+          Edit Task
+        </button>
+      </div>
+    </div>
+  ) : null;
+
   return (
     <div className="w-full relative">
       <div className="sticky top-0 z-10 bg-white/80 backdrop-blur flex items-center justify-between mb-4 px-2 py-3 rounded-t-lg shadow-sm">
@@ -326,6 +411,7 @@ const Calendar: React.FC<CalendarProps> = ({ events, onEventMove }) => {
         <span className="ml-auto text-xs text-gray-400">Today is highlighted</span>
       </div>
       {popover}
+      {taskPopover}
     </div>
   );
 };

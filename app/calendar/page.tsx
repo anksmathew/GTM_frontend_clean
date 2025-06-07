@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Calendar from '../../components/Calendar';
 import axios from 'axios';
+import TaskModal from '../../components/TaskModal';
 
 interface Campaign {
   id: number;
@@ -14,11 +15,16 @@ interface Task {
   id: number;
   title: string;
   due_date: string;
+  description: string;
+  status: string;
+  campaignIds: string[];
 }
 
 const CalendarPage = () => {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<any | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -40,8 +46,12 @@ const CalendarPage = () => {
         const taskEvents = tasks.filter((t: Task) => t.due_date).map((t: Task) => ({
           id: `task-${t.id}`,
           title: t.title,
+          description: t.description,
+          due_date: t.due_date,
           date: t.due_date,
           type: 'task',
+          status: t.status,
+          campaignIds: t.campaignIds,
         }));
         setEvents([...campaignEvents, ...taskEvents]);
       } catch (e) {
@@ -68,6 +78,33 @@ const CalendarPage = () => {
     setEvents(prev => prev.map(e => e.id === event.id ? { ...e, date: newDate } : e));
   };
 
+  const handleTaskClick = (event: any) => {
+    setEditingTask(event);
+    setModalOpen(true);
+  };
+
+  const handleSaveTask = async (taskData: any) => {
+    try {
+      if (editingTask && editingTask.id) {
+        await axios.put(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/tasks/${editingTask.id.toString().replace('task-', '')}`, {
+          ...editingTask,
+          ...taskData,
+          due_date: taskData.due_date,
+        });
+        setEvents(prev => prev.map(e => e.id === editingTask.id ? { ...e, ...taskData, date: taskData.due_date } : e));
+      }
+      setModalOpen(false);
+      setEditingTask(null);
+    } catch (error) {
+      console.error('Error saving task:', error);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setEditingTask(null);
+  };
+
   return (
     <div className="space-y-8">
       <div>
@@ -80,9 +117,15 @@ const CalendarPage = () => {
         {loading ? (
           <div className="flex items-center justify-center h-96 text-neutral-400 text-lg">Loading calendar...</div>
         ) : (
-          <Calendar events={events} onEventMove={handleEventMove} />
+          <Calendar events={events} onEventMove={handleEventMove} onTaskClick={handleTaskClick} />
         )}
       </div>
+      <TaskModal
+        isOpen={modalOpen}
+        onClose={handleCloseModal}
+        onSave={handleSaveTask}
+        task={editingTask}
+      />
     </div>
   );
 };
