@@ -46,7 +46,7 @@ const statusIcons: Record<string, string> = {
   'Delayed': '⚠️',
   'Done': '✅',
   'To-do': '📋',
-  'task': '✅',
+  'task': '❗',
 };
 
 const Calendar: React.FC<CalendarProps> = ({ events, onEventMove }) => {
@@ -319,7 +319,7 @@ const Calendar: React.FC<CalendarProps> = ({ events, onEventMove }) => {
       <div className="flex gap-4 mt-6 items-center">
         <span className="text-xs font-semibold text-gray-500">Legend:</span>
         <span className="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded border border-blue-200"><span>🚀</span>Campaign</span>
-        <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-800 px-2 py-1 rounded border border-green-200"><span>✅</span>Task</span>
+        <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-800 px-2 py-1 rounded border border-green-200"><span>❗</span>Task</span>
         <span className="inline-flex items-center gap-1 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded border border-yellow-200"><span>⏳</span>In Progress</span>
         <span className="inline-flex items-center gap-1 text-xs bg-red-100 text-red-800 px-2 py-1 rounded border border-red-200"><span>⚠️</span>Delayed</span>
         <span className="inline-flex items-center gap-1 text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded border border-gray-300"><span>✅</span>Done</span>
