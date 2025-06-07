@@ -242,8 +242,8 @@ const PersonaManager = () => {
     <div className="p-6 bg-white">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-semibold text-white">Target Personas</h2>
-        <button className="btn btn-primary" onClick={() => openModal()}>
-          Add Persona
+        <button className="bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg px-5 py-2 text-sm shadow" onClick={() => openModal()}>
+          + Add Persona
         </button>
       </div>
 
@@ -319,16 +319,18 @@ const PersonaManager = () => {
               </div>
             </div>
 
-            <div className="flex justify-end space-x-2 mt-6">
+            <div className="flex justify-end items-center space-x-2 mt-6">
               <button
-                className="btn btn-secondary"
+                className="border border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold text-sm rounded px-4 py-2 transition-colors duration-150 focus:outline-none"
                 onClick={e => { e.stopPropagation(); openModal(persona); }}
+                type="button"
               >
                 Edit
               </button>
               <button
-                className="text-green-600 hover:text-green-800 font-semibold text-sm"
+                className="border border-green-600 text-green-600 hover:bg-green-50 font-semibold text-sm rounded px-4 py-2 transition-colors duration-150 focus:outline-none"
                 onClick={e => { e.stopPropagation(); handleViewDetails(persona); }}
+                type="button"
               >
                 View Details →
               </button>

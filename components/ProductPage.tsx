@@ -330,17 +330,6 @@ const ProductPage = ({ params }: { params: { id: string } }) => {
           <div className="bg-white rounded-xl border border-neutral-200 shadow-sm p-8">
             <h2 className="text-xl font-semibold text-neutral-900 mb-4">Marketing Channels</h2>
             <div className="mb-6 flex flex-wrap gap-2 items-center">
-              <select
-                className="px-4 py-2 border border-neutral-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
-                value={selectedChannelId}
-                onChange={e => setSelectedChannelId(Number(e.target.value))}
-              >
-                <option value="">Select Channel</option>
-                {allChannels.filter(ch => !channels.some(c => c.id === ch.id)).map(ch => (
-                  <option key={ch.id} value={ch.id}>{ch.name}</option>
-                ))}
-              </select>
-              <button onClick={handleAssignChannel} className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-semibold shadow" disabled={!selectedChannelId}>Assign</button>
               <button onClick={() => setShowAddChannelModal(true)} className="px-4 py-2 bg-white border border-neutral-200 rounded-lg hover:bg-neutral-100 text-neutral-700 font-semibold shadow-sm">Add Channel</button>
             </div>
             {channels.length > 0 ? (
