@@ -23,11 +23,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${inter.variable} font-sans antialiased bg-[#0a0a0a] text-white min-h-screen`}>
-        <div className="flex min-h-screen w-full">
-          <aside className="h-full w-64 flex-shrink-0">
-            <Sidebar />
-          </aside>
-          <main className="flex-1 min-h-screen h-full w-full bg-[#F8FAFC] text-[#181C2A] p-6 shadow-lg flex flex-col">
+        <div className="flex w-full">
+          <Sidebar />
+          <main className="flex-1 min-h-screen h-full w-full bg-[#F8FAFC] text-[#181C2A] p-6 shadow-lg flex flex-col ml-64">
             {children}
           </main>
         </div>
