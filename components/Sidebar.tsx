@@ -16,7 +16,7 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="flex flex-col justify-between h-full w-64 bg-[#181C2A] rounded-2xl p-6 shadow-lg">
+    <aside className="flex flex-col justify-between min-h-screen w-64 bg-[#181C2A] rounded-2xl p-6 shadow-lg">
       <div>
         <Link href="/" className="flex items-center mb-10 cursor-pointer">
           <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold mr-3">C</div>
