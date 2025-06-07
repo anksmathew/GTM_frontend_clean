@@ -7,6 +7,7 @@ interface Campaign {
   id: number;
   name: string;
   launch_date: string;
+  status: string;
 }
 
 interface Task {
@@ -34,6 +35,7 @@ const CalendarPage = () => {
           title: c.name,
           date: c.launch_date,
           type: 'campaign',
+          status: c.status,
         }));
         const taskEvents = tasks.filter((t: Task) => t.due_date).map((t: Task) => ({
           id: `task-${t.id}`,

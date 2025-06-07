@@ -173,6 +173,11 @@ const Calendar: React.FC<CalendarProps> = ({ events }) => {
         <div className="text-xs mb-2">
           <span className="font-semibold">Type:</span> {popoverEvent.type === 'campaign' ? 'Campaign' : 'Task'}
         </div>
+        {popoverEvent.type === 'campaign' && popoverEvent.status && (
+          <div className="text-xs mb-2">
+            <span className="font-semibold">Status:</span> <span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold ml-1 ${statusColors[popoverEvent.status] || 'bg-gray-100 text-gray-700 border-gray-200'}`}>{popoverEvent.status}</span>
+          </div>
+        )}
         <div className="text-xs mb-2">
           <span className="font-semibold">Date:</span> {popoverEvent.date}
         </div>
