@@ -69,14 +69,14 @@ export default function Sidebar() {
             <ul className="space-y-1">
               <li>
                 <a href="#" className="flex items-center gap-3 px-3 py-2 rounded-lg text-[#A0AEC0] hover:bg-[#232946] hover:text-white">
-                  <FaQuestionCircle className="text-lg" /> Help and Support
+                  <FaQuestionCircle className="text-lg" /> Support
                 </a>
               </li>
-              <li>
+              {/* <li>
                 <a href="#" className="flex items-center gap-3 px-3 py-2 rounded-lg text-[#A0AEC0] hover:bg-[#232946] hover:text-white">
                   <FaCog className="text-lg" /> Settings
                 </a>
-              </li>
+              </li> */}
             </ul>
           </div>
         </nav>
