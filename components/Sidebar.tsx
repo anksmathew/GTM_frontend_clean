@@ -41,9 +41,11 @@ export default function Sidebar() {
                 </Link>
               </li>
               <li>
-                <a href="#" className="flex items-center gap-3 px-3 py-2 rounded-lg text-[#A0AEC0] hover:bg-[#232946] hover:text-white">
-                  <FaCalendarAlt className="text-lg" /> Calendar
-                </a>
+                <Link href="/calendar" legacyBehavior>
+                  <a className={`flex items-center gap-3 px-3 py-2 rounded-lg font-semibold ${pathname === '/calendar' ? 'bg-[#232946] text-white' : 'text-[#A0AEC0] hover:bg-[#232946] hover:text-white'}`}>
+                    <FaCalendarAlt className="text-lg" /> Calendar
+                  </a>
+                </Link>
               </li>
             </ul>
           </div>

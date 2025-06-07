@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./global.css";
 import Sidebar from '../components/Sidebar';
 import Link from 'next/link';
+import { FaCalendarAlt } from 'react-icons/fa';
 
 const inter = Inter({
   subsets: ["latin"],
