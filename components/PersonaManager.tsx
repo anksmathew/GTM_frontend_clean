@@ -165,10 +165,30 @@ const PersonaManager = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    let personaId: number | undefined = editPersona?.id;
     if (editPersona) {
       await axios.put(`${API_URL}/api/personas/${editPersona.id}`, form);
+      personaId = editPersona.id;
     } else {
-      await axios.post(API_URL + "/api/personas", form);
+      const res = await axios.post(API_URL + "/api/personas", form);
+      personaId = res.data?.id;
+    }
+    // Sync campaign assignments
+    if (personaId && personaCampaigns[personaId]) {
+      // Get all campaign ids for this persona
+      const assignedIds = (personaCampaigns[personaId] || []).map(c => c.id);
+      // Remove persona from all campaigns first
+      await Promise.all(
+        campaigns.map(async c => {
+          await axios.delete(`${API_URL}/api/campaigns/${c.id}/personas/${personaId}`);
+        })
+      );
+      // Add persona to selected campaigns
+      await Promise.all(
+        assignedIds.map(async cid => {
+          await axios.post(`${API_URL}/api/campaigns/${cid}/personas/${personaId}`);
+        })
+      );
     }
     fetchPersonas();
     closeModal();
@@ -275,17 +295,18 @@ const PersonaManager = () => {
             {/* Campaigns Section */}
             <div className="mt-4">
               <h4 className="text-sm font-medium text-[#9ca3af] mb-2">Targeted Campaigns</h4>
-              <div className="space-y-2">
+              <div className="flex flex-wrap gap-2">
                 {typeof persona.id === 'number' && personaCampaigns[persona.id]?.length > 0 ? (
                   personaCampaigns[persona.id].map((campaign: any) => (
                     <div
                       key={campaign.id}
-                      className="flex items-center justify-between p-2 bg-[#2a2a2a] rounded-md hover:bg-[#374151] transition-colors duration-150"
+                      className="flex items-center bg-[#e5f0fa] rounded-full px-3 py-1 text-[#007acc] text-xs font-medium gap-2"
                     >
-                      <span className="text-sm text-[#e5e5e5]">{campaign.name}</span>
+                      <span>{campaign.name}</span>
                       <button
                         onClick={e => e.stopPropagation()}
-                        className="text-xs text-[#007acc] hover:text-[#0062a3] font-medium"
+                        className="text-xs text-[#007acc] hover:underline font-medium px-0 py-0 bg-transparent border-none focus:outline-none"
+                        style={{marginLeft: 0}}
                       >
                         View →
                       </button>
@@ -329,79 +350,108 @@ const PersonaManager = () => {
             <form onSubmit={handleSubmit} className="space-y-3 max-h-[70vh] overflow-y-auto pr-2">
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label className="block text-xs font-medium">Name</label>
-                  <input name="name" value={form.name} onChange={handleInput} required className="w-full border rounded px-2 py-1" />
+                  <label className="block text-xs font-medium text-[#9ca3af]">Name</label>
+                  <input name="name" value={form.name} onChange={handleInput} required className="w-full border border-[#374151] rounded px-2 py-1 bg-[#23272f] text-white" />
                 </div>
                 <div className="flex-1">
-                  <label className="block text-xs font-medium">Title</label>
-                  <input name="title" value={form.title} onChange={handleInput} className="w-full border rounded px-2 py-1" />
+                  <label className="block text-xs font-medium text-[#9ca3af]">Title</label>
+                  <input name="title" value={form.title} onChange={handleInput} className="w-full border border-[#374151] rounded px-2 py-1 bg-[#23272f] text-white" />
                 </div>
               </div>
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label className="block text-xs font-medium">Age Range</label>
-                  <select name="age_range" value={form.age_range} onChange={handleInput} className="w-full border rounded px-2 py-1">
+                  <label className="block text-xs font-medium text-[#9ca3af]">Age Range</label>
+                  <select name="age_range" value={form.age_range} onChange={handleInput} className="w-full border border-[#374151] rounded px-2 py-1 bg-[#23272f] text-white">
                     <option value="">Select</option>
                     {ageRanges.map((a) => <option key={a} value={a}>{a}</option>)}
                   </select>
                 </div>
                 <div className="flex-1">
-                  <label className="block text-xs font-medium">Gender</label>
-                  <select name="gender" value={form.gender} onChange={handleInput} className="w-full border rounded px-2 py-1">
+                  <label className="block text-xs font-medium text-[#9ca3af]">Gender</label>
+                  <select name="gender" value={form.gender} onChange={handleInput} className="w-full border border-[#374151] rounded px-2 py-1 bg-[#23272f] text-white">
                     <option value="">Select</option>
                     {genders.map((g) => <option key={g} value={g}>{g}</option>)}
                   </select>
                 </div>
                 <div className="flex-1">
-                  <label className="block text-xs font-medium">Location</label>
-                  <input name="location" value={form.location} onChange={handleInput} className="w-full border rounded px-2 py-1" />
+                  <label className="block text-xs font-medium text-[#9ca3af]">Location</label>
+                  <input name="location" value={form.location} onChange={handleInput} className="w-full border border-[#374151] rounded px-2 py-1 bg-[#23272f] text-white" />
                 </div>
               </div>
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label className="block text-xs font-medium">Income Bracket</label>
-                  <select name="income_bracket" value={form.income_bracket} onChange={handleInput} className="w-full border rounded px-2 py-1">
+                  <label className="block text-xs font-medium text-[#9ca3af]">Income Bracket</label>
+                  <select name="income_bracket" value={form.income_bracket} onChange={handleInput} className="w-full border border-[#374151] rounded px-2 py-1 bg-[#23272f] text-white">
                     <option value="">Select</option>
                     {incomeBrackets.map((i) => <option key={i} value={i}>{i}</option>)}
                   </select>
                 </div>
                 <div className="flex-1">
-                  <label className="block text-xs font-medium">Job/Role</label>
-                  <input name="job_role" value={form.job_role} onChange={handleInput} className="w-full border rounded px-2 py-1" />
+                  <label className="block text-xs font-medium text-[#9ca3af]">Job/Role</label>
+                  <input name="job_role" value={form.job_role} onChange={handleInput} className="w-full border border-[#374151] rounded px-2 py-1 bg-[#23272f] text-white" />
                 </div>
                 <div className="flex-1">
-                  <label className="block text-xs font-medium">Company Size</label>
-                  <select name="company_size" value={form.company_size} onChange={handleInput} className="w-full border rounded px-2 py-1">
+                  <label className="block text-xs font-medium text-[#9ca3af]">Company Size</label>
+                  <select name="company_size" value={form.company_size} onChange={handleInput} className="w-full border border-[#374151] rounded px-2 py-1 bg-[#23272f] text-white">
                     <option value="">Select</option>
                     {companySizes.map((c) => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium">Pain Points</label>
-                <textarea name="pain_points" value={form.pain_points} onChange={handleInput} className="w-full border rounded px-2 py-1" rows={2} />
+                <label className="block text-xs font-medium text-[#9ca3af]">Pain Points</label>
+                <textarea name="pain_points" value={form.pain_points} onChange={handleInput} className="w-full border border-[#374151] rounded px-2 py-1 bg-[#23272f] text-white" rows={2} />
               </div>
               <div>
-                <label className="block text-xs font-medium">Goals & Motivations</label>
-                <textarea name="goals" value={form.goals} onChange={handleInput} className="w-full border rounded px-2 py-1" rows={2} />
+                <label className="block text-xs font-medium text-[#9ca3af]">Goals & Motivations</label>
+                <textarea name="goals" value={form.goals} onChange={handleInput} className="w-full border border-[#374151] rounded px-2 py-1 bg-[#23272f] text-white" rows={2} />
               </div>
               <div>
-                <label className="block text-xs font-medium">Interests</label>
-                <input name="interests" value={form.interests} onChange={handleInput} className="w-full border rounded px-2 py-1" />
+                <label className="block text-xs font-medium text-[#9ca3af]">Interests</label>
+                <input name="interests" value={form.interests} onChange={handleInput} className="w-full border border-[#374151] rounded px-2 py-1 bg-[#23272f] text-white" />
+              </div>
+              {/* Targeted Campaigns Multi-select */}
+              <div>
+                <label className="block text-xs font-medium text-[#9ca3af]">Targeted Campaigns</label>
+                <select
+                  multiple
+                  name="campaigns"
+                  value={
+                    editPersona && typeof editPersona.id === 'number' && personaCampaigns[editPersona.id]
+                      ? personaCampaigns[editPersona.id].map(c => String(c.id))
+                      : []
+                  }
+                  onChange={e => {
+                    const selected = Array.from(e.target.selectedOptions, o => o.value);
+                    if (editPersona && typeof editPersona.id === 'number') {
+                      setPersonaCampaigns(prev => ({
+                        ...prev,
+                        [editPersona.id!]: campaigns.filter(c => selected.includes(String(c.id)))
+                      }));
+                    }
+                  }}
+                  className="w-full border border-[#374151] rounded px-2 py-1 bg-[#23272f] text-white"
+                  size={Math.min(4, campaigns.length)}
+                >
+                  {campaigns.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-[#7C8DB5]">Hold Ctrl/Cmd to select multiple campaigns</p>
               </div>
               <div>
-                <label className="block text-xs font-medium">Values</label>
-                <input name="values" value={form.values || ""} onChange={handleInput} className="w-full border rounded px-2 py-1" />
+                <label className="block text-xs font-medium text-[#9ca3af]">Values</label>
+                <input name="values" value={form.values || ""} onChange={handleInput} className="w-full border border-[#374151] rounded px-2 py-1 bg-[#23272f] text-white" />
               </div>
               <div>
-                <label className="block text-xs font-medium">Buying Habits</label>
-                <input name="buying_habits" value={form.buying_habits} onChange={handleInput} className="w-full border rounded px-2 py-1" />
+                <label className="block text-xs font-medium text-[#9ca3af]">Buying Habits</label>
+                <input name="buying_habits" value={form.buying_habits} onChange={handleInput} className="w-full border border-[#374151] rounded px-2 py-1 bg-[#23272f] text-white" />
               </div>
               <div>
-                <label className="block text-xs font-medium">Preferred Communication Channels</label>
+                <label className="block text-xs font-medium text-[#9ca3af]">Preferred Communication Channels</label>
                 <div className="flex flex-wrap gap-2 mt-1">
                   {channels.map((ch) => (
-                    <label key={ch} className="flex items-center gap-1 text-xs">
+                    <label key={ch} className="flex items-center gap-1 text-xs text-[#9ca3af]">
                       <input
                         type="checkbox"
                         name="preferred_channels"
@@ -414,6 +464,7 @@ const PersonaManager = () => {
                               : f.preferred_channels.split(",").filter(x => x !== ch).join(",")
                           }));
                         }}
+                        className="accent-blue-600"
                       />
                       {ch}
                     </label>
@@ -421,20 +472,20 @@ const PersonaManager = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium">Tech Adoption</label>
-                <input name="tech_adoption" value={form.tech_adoption} onChange={handleInput} className="w-full border rounded px-2 py-1" />
+                <label className="block text-xs font-medium text-[#9ca3af]">Tech Adoption</label>
+                <input name="tech_adoption" value={form.tech_adoption} onChange={handleInput} className="w-full border border-[#374151] rounded px-2 py-1 bg-[#23272f] text-white" />
               </div>
               <div>
-                <label className="block text-xs font-medium">Social Media Usage</label>
-                <input name="social_media_usage" value={form.social_media_usage} onChange={handleInput} className="w-full border rounded px-2 py-1" />
+                <label className="block text-xs font-medium text-[#9ca3af]">Social Media Usage</label>
+                <input name="social_media_usage" value={form.social_media_usage} onChange={handleInput} className="w-full border border-[#374151] rounded px-2 py-1 bg-[#23272f] text-white" />
               </div>
               <div>
-                <label className="block text-xs font-medium">Decision Factors</label>
-                <input name="decision_factors" value={form.decision_factors} onChange={handleInput} className="w-full border rounded px-2 py-1" />
+                <label className="block text-xs font-medium text-[#9ca3af]">Decision Factors</label>
+                <input name="decision_factors" value={form.decision_factors} onChange={handleInput} className="w-full border border-[#374151] rounded px-2 py-1 bg-[#23272f] text-white" />
               </div>
               <div>
-                <label className="block text-xs font-medium">Market Size (est.)</label>
-                <input type="number" name="market_size" value={form.market_size} onChange={handleInput} className="w-full border rounded px-2 py-1" />
+                <label className="block text-xs font-medium text-[#9ca3af]">Market Size (est.)</label>
+                <input type="number" name="market_size" value={form.market_size} onChange={handleInput} className="w-full border border-[#374151] rounded px-2 py-1 bg-[#23272f] text-white" />
               </div>
               <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded shadow hover:bg-blue-700 transition mt-2">
                 {editPersona ? "Save Changes" : "Create Persona"}
