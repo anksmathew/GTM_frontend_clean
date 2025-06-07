@@ -70,9 +70,9 @@ export default function Sidebar() {
             <div className="text-xs uppercase text-[#7C8DB5] font-bold mb-2 mt-4">Help and Support</div>
             <ul className="space-y-1">
               <li>
-                <Link href="/about" legacyBehavior>
-                  <a className={`flex items-center gap-3 px-3 py-2 rounded-lg font-semibold ${pathname === '/about' ? 'bg-[#232946] text-white' : 'text-[#A0AEC0] hover:bg-[#232946] hover:text-white'}`}>
-                    <FaQuestionCircle className="text-lg" /> About Me
+                <Link href="/support" legacyBehavior>
+                  <a className={`flex items-center gap-3 px-3 py-2 rounded-lg font-semibold ${pathname === '/support' ? 'bg-[#232946] text-white' : 'text-[#A0AEC0] hover:bg-[#232946] hover:text-white'}`}>
+                    <FaQuestionCircle className="text-lg" /> Support
                   </a>
                 </Link>
               </li>
