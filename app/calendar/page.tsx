@@ -53,17 +53,11 @@ const CalendarPage = () => {
   }, []);
 
   const handleEventMove = async (event: any, newDate: string) => {
+    // Update backend
     if (event.type === 'campaign') {
-      const campaignId = event.id.toString().replace('campaign-', '');
-      // Fetch the current campaign details
-      const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/campaigns/${campaignId}`);
-      const campaign = data.campaign || data;
-      await axios.put(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/campaigns/${campaignId}`,
-        {
-          ...campaign,
-          launch_date: newDate,
-        }
-      );
+      await axios.put(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/campaigns/${event.id.toString().replace('campaign-', '')}`, {
+        launch_date: newDate,
+      });
     } else if (event.type === 'task') {
       await axios.put(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/tasks/${event.id.toString().replace('task-', '')}`, {
         ...event,

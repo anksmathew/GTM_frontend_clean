@@ -55,6 +55,10 @@ const Calendar: React.FC<CalendarProps> = ({ events, onEventMove }) => {
   const [currentYear, setCurrentYear] = React.useState(today.getFullYear());
   const [popoverEvent, setPopoverEvent] = React.useState<CalendarEvent | null>(null);
   const [popoverPosition, setPopoverPosition] = React.useState<{ x: number; y: number } | null>(null);
+  const [isDragging, setIsDragging] = React.useState(false);
+  const pressTimer = React.useRef<NodeJS.Timeout | null>(null);
+  const LONG_PRESS_DURATION = 500; // 500ms for long press
+  const dragHandleRef = React.useRef<HTMLDivElement>(null);
 
   const daysInMonth = getDaysInMonth(currentYear, currentMonth);
   const firstDayOfWeek = getFirstDayOfWeek(currentYear, currentMonth);
@@ -82,16 +86,55 @@ const Calendar: React.FC<CalendarProps> = ({ events, onEventMove }) => {
 
   // Drag and drop handlers
   function handleDragEnd(result: DropResult) {
-    console.log('Drag end result:', result); // Add logging
     if (!result.destination) return;
     const [destDate] = result.destination.droppableId.split(':');
     const eventId = result.draggableId;
     const event = events.find(e => e.id.toString() === eventId);
-    console.log('Moving event:', event, 'to date:', destDate); // Add logging
     if (event && destDate !== event.date && onEventMove) {
       onEventMove(event, destDate);
     }
   }
+
+  const handlePressStart = (e: React.MouseEvent | React.TouchEvent, event: CalendarEvent) => {
+    e.preventDefault();
+    pressTimer.current = setTimeout(() => {
+      setIsDragging(true);
+      // Trigger drag start manually
+      if (dragHandleRef.current) {
+        const dragHandle = dragHandleRef.current;
+        const dragEvent = new MouseEvent('mousedown', {
+          bubbles: true,
+          cancelable: true,
+          view: window
+        });
+        dragHandle.dispatchEvent(dragEvent);
+      }
+    }, LONG_PRESS_DURATION);
+  };
+
+  const handlePressEnd = (e: React.MouseEvent | React.TouchEvent, event: CalendarEvent) => {
+    e.preventDefault();
+    if (pressTimer.current) {
+      clearTimeout(pressTimer.current);
+      pressTimer.current = null;
+    }
+    
+    if (!isDragging) {
+      // Only open popover if we weren't dragging
+      const rect = (e.target as HTMLElement).getBoundingClientRect();
+      setPopoverEvent(event);
+      setPopoverPosition({ x: rect.left + rect.width / 2, y: rect.top });
+    }
+    setIsDragging(false);
+  };
+
+  const handlePressCancel = () => {
+    if (pressTimer.current) {
+      clearTimeout(pressTimer.current);
+      pressTimer.current = null;
+    }
+    setIsDragging(false);
+  };
 
   // Generate calendar grid
   const calendarCells = [];
@@ -124,21 +167,33 @@ const Calendar: React.FC<CalendarProps> = ({ events, onEventMove }) => {
                 return (
                   <Draggable draggableId={ev.id.toString()} index={idx} key={ev.id}>
                     {(provided, snapshot) => (
-                      <div
+                      <button
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         className={`text-xs rounded-lg px-2 py-1 font-semibold shadow-sm flex items-center gap-1 border w-full text-left focus:outline-none focus:ring-2 focus:ring-blue-400 ${colorClass} group-hover:scale-[1.03] group-hover:shadow-md transition-transform duration-100 ${snapshot.isDragging ? 'ring-2 ring-blue-400 scale-105 z-10' : ''}`}
+                        title={ev.title}
+                        onMouseDown={(e) => handlePressStart(e, ev)}
+                        onMouseUp={(e) => handlePressEnd(e, ev)}
+                        onMouseLeave={handlePressCancel}
+                        onTouchStart={(e) => handlePressStart(e, ev)}
+                        onTouchEnd={(e) => handlePressEnd(e, ev)}
+                        onTouchCancel={handlePressCancel}
+                        tabIndex={0}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            setPopoverEvent(ev);
+                          }
+                        }}
                       >
-                        <span
+                        <div
+                          ref={dragHandleRef}
                           {...provided.dragHandleProps}
-                          className="cursor-grab active:cursor-grabbing mr-1 text-lg"
-                          title="Drag to move"
-                        >
-                          ≡
-                        </span>
+                          className="absolute inset-0"
+                          style={{ pointerEvents: isDragging ? 'auto' : 'none' }}
+                        />
                         <span className="mr-1">{icon}</span>
                         <span className="truncate max-w-[90px]">{ev.title}</span>
-                      </div>
+                      </button>
                     )}
                   </Draggable>
                 );
