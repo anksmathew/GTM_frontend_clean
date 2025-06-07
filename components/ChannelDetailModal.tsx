@@ -452,7 +452,7 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/30 backdrop-blur-sm">
       <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-4xl relative max-h-[90vh] overflow-y-auto">
         <button
-          onClick={onClose}
+          onClick={() => handleSaveAll()}
           className="absolute top-4 right-4 text-neutral-400 hover:text-neutral-700 transition-colors duration-200"
           aria-label="Close"
         >
@@ -483,7 +483,7 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
         <div className="space-y-6">
           {activeTab === 'edit' && (
             <div>
-              <h3 className="text-2xl font-bold text-neutral-900 mb-4">Edit Channel</h3>
+              
               <div className="mb-3">
                 <h4 className="text-xl font-bold text-neutral-900 mb-1">Channel Details</h4>
                 <p className="text-sm text-neutral-700 mb-1">Fill in the details for this marketing channel. Fields marked with * are required.</p>
@@ -1083,6 +1083,50 @@ const ChannelDetailModal: React.FC<ChannelDetailModalProps> = ({ channel: initia
                             disabled={!newCampaign.id || addingCampaign}
                           >
                             {addingCampaign ? 'Saving...' : 'Save'}
+                          </button>
+                        </div>
+                      </form>
+                    )}
+                    {addMode === 'create' && (
+                      <form onSubmit={handleAddCampaign} className="flex flex-col gap-4 mb-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Campaign Name</label>
+                          <input
+                            type="text"
+                            className="w-full border rounded px-2 py-1"
+                            value={newCampaign.name}
+                            onChange={e => setNewCampaign({ ...newCampaign, name: e.target.value })}
+                            placeholder="Enter campaign name"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Status</label>
+                          <select
+                            className="w-full border rounded px-2 py-1"
+                            value={newCampaign.status}
+                            onChange={e => setNewCampaign({ ...newCampaign, status: e.target.value })}
+                          >
+                            <option value="Planned">Planned</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Launched">Launched</option>
+                            <option value="Delayed">Delayed</option>
+                          </select>
+                        </div>
+                        <div className="flex justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setShowAddCampaignModal(false)}
+                            className="btn btn-secondary"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            className="btn btn-primary"
+                            disabled={!newCampaign.name.trim() || addingCampaign}
+                          >
+                            {addingCampaign ? 'Creating...' : 'Create'}
                           </button>
                         </div>
                       </form>

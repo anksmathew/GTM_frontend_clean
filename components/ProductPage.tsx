@@ -46,7 +46,7 @@ const ProductPage = ({ params }: { params: { id: string } }) => {
   const [editMode, setEditMode] = useState(false);
   const [editProduct, setEditProduct] = useState<any>(null);
   const [allChannels, setAllChannels] = useState<Channel[]>([]);
-  const [selectedChannelId, setSelectedChannelId] = useState<number | ''>('');
+  const [selectedChannelIds, setSelectedChannelIds] = useState<number[]>([]);
   const [showAddChannelModal, setShowAddChannelModal] = useState(false);
   const [addChannelLoading, setAddChannelLoading] = useState(false);
   const [addChannelError, setAddChannelError] = useState('');
@@ -131,15 +131,18 @@ const ProductPage = ({ params }: { params: { id: string } }) => {
     setEditProduct(null);
   };
 
-  const handleAssignChannel = async () => {
-    if (!selectedChannelId) return;
+  const handleAssignChannels = async () => {
+    if (!selectedChannelIds.length) return;
     try {
-      const newChannelIds = [...channels.map(c => c.id), selectedChannelId];
+      const newChannelIds = [
+        ...channels.map(c => c.id),
+        ...selectedChannelIds.filter(id => !channels.some(c => c.id === id)),
+      ];
       await axios.post(`${API_URL}/api/campaigns/${product?.id}/channels`, { channelIds: newChannelIds });
-      setSelectedChannelId('');
+      setSelectedChannelIds([]);
       await refreshData();
     } catch (err) {
-      alert('Failed to assign channel.');
+      alert('Failed to assign channels.');
     }
   };
 
@@ -330,6 +333,29 @@ const ProductPage = ({ params }: { params: { id: string } }) => {
           <div className="bg-white rounded-xl border border-neutral-200 shadow-sm p-8">
             <h2 className="text-xl font-semibold text-neutral-900 mb-4">Marketing Channels</h2>
             <div className="mb-6 flex flex-wrap gap-2 items-center">
+              <select
+                multiple
+                className="px-4 py-2 border border-neutral-200 rounded-lg bg-white text-neutral-700 font-semibold shadow-sm focus:ring-2 focus:ring-primary-400 focus:border-primary-400 min-w-[200px]"
+                value={selectedChannelIds.map(String)}
+                onChange={e => {
+                  const options = Array.from(e.target.selectedOptions, option => Number(option.value));
+                  setSelectedChannelIds(options);
+                }}
+              >
+                {allChannels.filter(ch => !channels.some(c => c.id === ch.id)).map(channel => (
+                  <option key={channel.id} value={channel.id}>
+                    {channel.name} {channel.type ? `(${channel.type})` : ''}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={handleAssignChannels}
+                className="px-4 py-2 bg-white border border-neutral-200 rounded-lg hover:bg-neutral-100 text-neutral-700 font-semibold shadow-sm"
+                disabled={!selectedChannelIds.length}
+                type="button"
+              >
+                Assign Selected Channels
+              </button>
               <button onClick={() => setShowAddChannelModal(true)} className="px-4 py-2 bg-white border border-neutral-200 rounded-lg hover:bg-neutral-100 text-neutral-700 font-semibold shadow-sm">Add Channel</button>
             </div>
             {channels.length > 0 ? (

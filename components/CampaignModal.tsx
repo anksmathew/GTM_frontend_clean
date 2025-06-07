@@ -1,6 +1,12 @@
 import React from 'react';
 import axios from 'axios';
 
+type Channel = {
+  id: number;
+  name: string;
+  type: string;
+};
+
 type Campaign = {
   id?: number;
   name: string;
@@ -9,6 +15,7 @@ type Campaign = {
   status: string;
   budget: number | string;
   team: string;
+  channelIds?: number[];
 };
 
 type CampaignModalProps = {
@@ -34,9 +41,28 @@ const CampaignModal: React.FC<CampaignModalProps> = ({ isOpen, onClose, onSave, 
     launch_date: '',
     status: statusOptions[0],
     budget: '',
-    team: ''
+    team: '',
+    channelIds: []
   });
   const [error, setError] = React.useState('');
+  const [channels, setChannels] = React.useState<Channel[]>([]);
+  const [loading, setLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setLoading(true);
+      axios.get(`${API_URL}/api/channels`)
+        .then(res => {
+          const channelsData = Array.isArray(res.data) ? res.data : (res.data.channels || []);
+          setChannels(channelsData);
+        })
+        .catch(err => {
+          console.error('Error fetching channels:', err);
+          setChannels([]);
+        })
+        .finally(() => setLoading(false));
+    }
+  }, [isOpen]);
 
   React.useEffect(() => {
     if (campaign) {
@@ -49,6 +75,11 @@ const CampaignModal: React.FC<CampaignModalProps> = ({ isOpen, onClose, onSave, 
     setForm(prev => ({ ...prev, [name]: type === 'number' ? Number(value) : value }));
   };
 
+  const handleChannelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptions = Array.from(e.target.selectedOptions, option => Number(option.value));
+    setForm(prev => ({ ...prev, channelIds: selectedOptions }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -59,11 +90,22 @@ const CampaignModal: React.FC<CampaignModalProps> = ({ isOpen, onClose, onSave, 
     }
 
     try {
+      let campaignId;
       if (mode === 'add') {
-        await axios.post(`${API_URL}/api/campaigns`, form);
+        const response = await axios.post(`${API_URL}/api/campaigns`, form);
+        campaignId = response.data.id;
       } else if (mode === 'edit' && campaign?.id) {
         await axios.put(`${API_URL}/api/campaigns/${campaign.id}`, form);
+        campaignId = campaign.id;
       }
+
+      // Assign channels to the campaign
+      if (campaignId && form.channelIds) {
+        await axios.post(`${API_URL}/api/campaigns/${campaignId}/channels`, {
+          channelIds: form.channelIds
+        });
+      }
+
       onSave();
       onClose();
     } catch (error) {
@@ -172,6 +214,26 @@ const CampaignModal: React.FC<CampaignModalProps> = ({ isOpen, onClose, onSave, 
                   <option key={option} value={option}>{option}</option>
                 ))}
               </select>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-neutral-600 mb-1">Channels</label>
+              <select
+                multiple
+                name="channelIds"
+                value={form.channelIds?.map(id => id.toString()) || []}
+                onChange={handleChannelChange}
+                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
+                disabled={loading}
+                size={4}
+              >
+                {channels.map(channel => (
+                  <option key={channel.id} value={channel.id}>
+                    {channel.name} ({channel.type})
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-neutral-500">Hold Ctrl/Cmd to select multiple channels</p>
             </div>
           </div>
 
