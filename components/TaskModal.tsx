@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
@@ -6,17 +8,25 @@ interface Campaign {
   name: string;
 }
 
+interface Task {
+  title: string;
+  description: string;
+  dueDate: string;
+  status: string;
+  campaignId: string;
+}
+
 interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (task: any) => void;
+  onSave: (task: Task) => void;
 }
 
 const statusOptions = ['To-do', 'In Progress', 'Done'];
 
 const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave }) => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<Task>({
     title: '',
     description: '',
     dueDate: '',
@@ -28,12 +38,18 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave }) => {
   const [newCampaignName, setNewCampaignName] = useState("");
   const [creatingCampaign, setCreatingCampaign] = useState(false);
   const [newCampaignError, setNewCampaignError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
+      setLoading(true);
       axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/campaigns`)
-        .then(res => setCampaigns(Array.isArray(res.data) ? res.data : []))
-        .catch(() => setCampaigns([]));
+        .then(res => {
+          const campaignsData = Array.isArray(res.data) ? res.data : (res.data.campaigns || []);
+          setCampaigns(campaignsData);
+        })
+        .catch(() => setCampaigns([]))
+        .finally(() => setLoading(false));
     }
   }, [isOpen]);
 
@@ -43,12 +59,13 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave }) => {
   };
 
   const handleCampaignChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (e.target.value === "__create_new__") {
+    const value = e.target.value;
+    if (value === "__create_new__") {
       setShowNewCampaignInput(true);
       setForm(prev => ({ ...prev, campaignId: "" }));
     } else {
       setShowNewCampaignInput(false);
-      setForm(prev => ({ ...prev, campaignId: e.target.value }));
+      setForm(prev => ({ ...prev, campaignId: value }));
     }
   };
 
@@ -87,13 +104,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave }) => {
       return;
     }
     setError('');
-    onSave({
-      title: form.title,
-      description: form.description,
-      dueDate: form.dueDate,
-      status: form.status,
-      campaignId: form.campaignId
-    });
+    onSave(form);
     onClose();
     setForm({ title: '', description: '', dueDate: '', status: statusOptions[0], campaignId: '' });
   };
@@ -166,9 +177,10 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave }) => {
               onChange={handleCampaignChange}
               className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
               required
+              disabled={loading}
             >
               <option value="">Select Campaign</option>
-              {Array.isArray(campaigns) && campaigns.map(c => (
+              {campaigns.map(c => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
               <option value="__create_new__">Create new campaign...</option>
@@ -187,7 +199,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave }) => {
                   <button
                     type="button"
                     onClick={handleCreateCampaign}
-                    className="px-3 py-1 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium"
+                    className="px-3 py-1 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium disabled:opacity-50"
                     disabled={creatingCampaign}
                   >
                     {creatingCampaign ? 'Creating...' : 'Add Campaign'}
